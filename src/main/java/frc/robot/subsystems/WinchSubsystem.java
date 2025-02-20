@@ -36,8 +36,12 @@ public class WinchSubsystem extends SubsystemBase{
         trappable = false;
     }
 
-    public void runWinch(double setPoint){
+    public void setWinch(double setPoint){
         winchMax.set(setPoint);
+    }
+
+    public double getPosition(){
+        return winchEncoder.getPosition();
     }
 
     // @Override
@@ -55,5 +59,4 @@ public class WinchSubsystem extends SubsystemBase{
             trapMax.set(WinchConstants.trapOpenSpeed);
         }
     }
-
 }

@@ -10,19 +10,15 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Configs;
 import frc.robot.Constants.ElevatorConstants;
-import frc.robot.Constants.OIConstants;
 
 public class ElevatorSubsystem extends SubsystemBase {
     private final SparkMax leadElevatorMax;
     private final SparkMax followElevatorMax;
-
-    private final XboxController controller = new XboxController(OIConstants.kCoPilotControllerPort);
 
     private final RelativeEncoder leadElevatorEncoder;
 
@@ -41,8 +37,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         leadElevatorController = leadElevatorMax.getClosedLoopController();
 
-        // leadElevatorMax.configure(Configs.ElevatorSubsystemConfigs.leadElevatorMaxConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-        // followElevatorMax.configure(Configs.ElevatorSubsystemConfigs.followElevatorMaxConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        leadElevatorMax.configure(Configs.ElevatorSubsystemConfigs.leadElevatorMaxConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+        followElevatorMax.configure(Configs.ElevatorSubsystemConfigs.followElevatorMaxConfig,ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         leadElevatorEncoder.setPosition(0);
         targetPosition = 0.0;
@@ -50,15 +46,15 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorFF = new ElevatorFeedforward(ElevatorConstants.kS, ElevatorConstants.kG, ElevatorConstants.kV);
     }
 
-    public void setHeight(double position){
-        double velocity = ((position - getHeight())/0.02);
+    public void setPosition(double position){
+        double velocity = ((position - getPosition())/0.02);
         double FF = elevatorFF.calculate(velocity);
 
         leadElevatorController.setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0, FF);
         position = targetPosition;
     }
 
-    public double getHeight(){
+    public double getPosition(){
         return leadElevatorEncoder.getPosition();
     }
 
@@ -66,12 +62,13 @@ public class ElevatorSubsystem extends SubsystemBase {
         leadElevatorController.setReference(speed, ControlType.kVelocity);
     }
 
-    public void setElevator(double setpoint){
-        leadElevatorController.setReference(setpoint, ControlType.kDutyCycle);
-    }
-
     public double getElevatorSpeed(){
         return leadElevatorEncoder.getVelocity();
+    }
+
+
+    public void setElevator(double setpoint){
+        leadElevatorController.setReference(setpoint, ControlType.kDutyCycle);
     }
 
     public void stopElevator(){
@@ -81,18 +78,12 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public boolean atHeight(){
-        return Math.abs(getHeight() - targetPosition) < ElevatorConstants.kElevatorHeightDeadbandRaw;
+        return Math.abs(getPosition() - targetPosition) < ElevatorConstants.kElevatorHeightDeadbandRaw;
     }
 
-    // @Override
-    // public void periodic(){
-    //     SmartDashboard.putNumber("Elevator Pos", getHeight());
-    //     SmartDashboard.putBoolean("Elevator At Pos", atHeight());
-    //     if(Math.abs(controller.getRightY()) > 0.15){
-    //        setElevator(controller.getRightY()*10);
-    //     }
-    //     else{
-    //         setElevator(0);
-    //     }
-    // }
+    @Override
+    public void periodic(){
+        SmartDashboard.putNumber("Elevator Pos", getPosition());
+        SmartDashboard.putBoolean("Elevator At Pos", atHeight());
+    }
 }

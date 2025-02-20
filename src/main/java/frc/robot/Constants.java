@@ -134,18 +134,18 @@ public final class Constants {
         public static final double kA = 0.12;
         
 
-        public static final double kElevatorMaxHeightRaw = 48;
+        public static final double kElevatorMaxHeightRaw = 150;
         public static final double kElevatorMaxSpeed = 1.0;
 
-        public static final double kMaxVelocityRPM = 1500;
-        public static final double kMaxAccelerationRPMS = 400;
+        public static final double kMaxVelocityRaw = 1500;
+        public static final double kMaxAccelerationRaw = 400;
 
-        public static final double kElevatorMotorGearRatio = 1.0;
+        public static final double kElevatorMotorGearRatio = 15.0;
 
-        public static final double kElevatorForwardSoftLimit = 0.0;
-        public static final double kElevatorReverseSoftLimit = kElevatorMaxHeightRaw;
+        public static final double kElevatorForwardSoftLimit = kElevatorMaxHeightRaw;
+        public static final double kElevatorReverseSoftLimit = 0;
 
-        public static final double kElevatorHeightDeadbandRaw = 5;
+        public static final double kElevatorHeightDeadbandRaw = 2;
 
         public static final double kElevatorPosition_L0_Raw = 12;
         public static final double kElevatorPosition_L2_Raw = 24;
@@ -157,8 +157,8 @@ public final class Constants {
         public static final int kArmMotorCANID = 13;
         public static final int kArmRollerMotorCANID = 14;
 
-        public static final double kArmMotorGearRatio = 12;
-        public static final double kArmRollerMotorGearRatio = 12;
+        public static final double kArmMotorGearRatio = 15;
+        public static final double kArmRollerMotorGearRatio = 4;
 
         public static final double kArmPositionDeadband = 3;
         public static final double kArmRollerSpeedDeadband = 100;
@@ -172,12 +172,12 @@ public final class Constants {
     }
 
     public static final class ScorerConstants{
-        public static final int kScorerRightMotorCANID = 15;
-        public static final int kScorerLeftMotorCANID = 16;
+        public static final int kScorerRightMotorCANID = 16;
+        public static final int kScorerLeftMotorCANID = 15;
 
-        public static final int kIntakeVelocityRPM = 2500;
+        public static final double kIntakeDuty = 0.6;
 
-        public static final double kScorerMotorGearRatio = 15.0;
+        public static final double kScorerMotorGearRatio = 5;
 
         public static final double kScorerSpeedDeadbandRPM = 120;
     }

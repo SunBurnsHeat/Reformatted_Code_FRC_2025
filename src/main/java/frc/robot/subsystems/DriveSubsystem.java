@@ -1,6 +1,9 @@
 package frc.robot.subsystems;
 
 import com.studica.frc.AHRS;
+import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.SerialPort.Port;
+
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -33,7 +36,7 @@ public class DriveSubsystem extends SubsystemBase {
 
     // instance of gyro for orientantion
     // parameter for the gyro specifies the port for connection
-    private final AHRS gyro = new AHRS(/*Port.kMXP */ NavXComType.kUSB1);
+    private final AHRS gyro = new AHRS(NavXComType.kUSB1);
 
     private double fieldRelativeOffset = 0;
 
@@ -73,6 +76,7 @@ public class DriveSubsystem extends SubsystemBase {
                         kBRight.getPosition()
                 });
         SmartDashboard.putString("odometry", odometry.getPoseMeters().toString());
+        SmartDashboard.putNumber("gyro angle", gyro.getAngle());
     }
 
     // returns the current position of the robot as a 'Pose2d' object

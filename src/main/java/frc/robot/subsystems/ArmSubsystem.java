@@ -45,14 +45,9 @@ public class ArmSubsystem extends SubsystemBase{
         targetSetpoint = 0.0;
     }
 
-    public void set(double speed){
-        armMotorController.setReference(speed, ControlType.kDutyCycle);
-        rollerMotorController.setReference(speed, ControlType.kDutyCycle);
-    }
-
     public void setArmRoller(double speed){ // speed is in RPM
         targetSetpoint = speed;
-        rollerMotorController.setReference(speed, ControlType.kVelocity);
+        rollerMotorController.setReference(speed, ControlType.kDutyCycle);
     }
 
     public void setArmPosition(double position){ // position is in degrees
@@ -108,7 +103,7 @@ public class ArmSubsystem extends SubsystemBase{
 
         if (targetSetpoint != null){
             SmartDashboard.putNumber("Arm Target Speed", targetSetpoint);
-        setArmPosition(targetSetpoint);
+            setArmPosition(targetSetpoint);
         }
         
 

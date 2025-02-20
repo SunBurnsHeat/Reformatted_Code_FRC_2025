@@ -13,6 +13,8 @@ import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.ScorerSubsystem;
 import frc.robot.subsystems.WinchSubsystem;
 
+import static edu.wpi.first.units.Units.Newton;
+
 import java.util.List;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -24,12 +26,16 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -50,6 +56,8 @@ public class RobotContainer {
   private final CommandXboxController coPilotControllerCommand =
       new CommandXboxController(OIConstants.kCoPilotControllerPort);
 
+  private final XboxController copilotController = new XboxController(OIConstants.kCoPilotControllerPort);
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
@@ -62,9 +70,31 @@ public class RobotContainer {
 
     driverControllerCommand.x().whileTrue(new RunCommand(() -> robotDrive.setX()));
     driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
-    coPilotControllerCommand.y().whileTrue(new RunCommand(() -> winch.openTrap(WinchSubsystem.trappable), winch));
-    coPilotControllerCommand.x().whileTrue(new RunCommand(() -> scorer.intake(), scorer));
-    coPilotControllerCommand.a().whileTrue(new RunCommand(() -> scorer.ejectElevated(), scorer));
+
+    coPilotControllerCommand.x().whileTrue(new StartEndCommand(() -> scorer.ejectBottomLeft(), () -> scorer.stopScorer()));
+    coPilotControllerCommand.b().whileTrue(new StartEndCommand(() -> scorer.ejectBottomRight(), () -> scorer.stopScorer()));    // coPilotControllerCommand.a().whileTrue(new RunCommand(() -> scorer.intake()));
+
+    new Trigger(this::leftTrigger).whileTrue(new StartEndCommand(() -> scorer.intake(), () -> scorer.stopScorer()));
+    new Trigger(this::rightTrigger).whileTrue(new StartEndCommand(() -> scorer.ejectElevated(), () -> scorer.stopScorer()));
+  }
+
+  private boolean leftTrigger() {
+    return copilotController.getRawAxis(2) > 0.75;
+  }
+  private boolean rightTrigger() {
+    return copilotController.getRawAxis(3) > 0.75;
+  }
+  private boolean R1Down() {
+    return copilotController.getRawAxis(5) > 0.75;
+  }
+  private boolean R1Up() {
+    return copilotController.getRawAxis(5) < -0.75;
+  }
+  private boolean L1Down() {
+    return copilotController.getRawAxis(1) > 0.75;
+  }
+  private boolean L1Up() {
+    return copilotController.getRawAxis(1) < -0.75;
   }
 
   public Command getAutonomousCommand() {

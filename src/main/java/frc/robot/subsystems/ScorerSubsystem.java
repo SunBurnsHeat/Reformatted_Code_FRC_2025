@@ -9,6 +9,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Configs;
@@ -43,10 +44,13 @@ public class ScorerSubsystem extends SubsystemBase{
         scorerLeftMax.configure(Configs.ScorerSubsystemConfigs.scorerLeftMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
     
-    public void setScorerMax(double setPoint){
-        scorerRightMax.set(setPoint);
+    public void setScorerMaxLeft(double setPoint){
         scorerLeftMax.set(setPoint);
 
+        targetSetPoint = setPoint;
+    }
+    public void setScorerMaxRight(double setPoint){
+        scorerRightMax.set(setPoint);
         targetSetPoint = setPoint;
     }
 
@@ -73,25 +77,28 @@ public class ScorerSubsystem extends SubsystemBase{
     }
 
     public void intake(){
-        scorerRightController.setReference(ScorerConstants.kIntakeVelocityRPM, ControlType.kVelocity);
-        scorerLeftController.setReference(ScorerConstants.kIntakeVelocityRPM, ControlType.kVelocity);
+        scorerRightController.setReference(0.35, ControlType.kDutyCycle);
+        scorerLeftController.setReference(0.35, ControlType.kDutyCycle);
+    }
 
-        targetSetPoint = ScorerConstants.kIntakeVelocityRPM;
+    public void stopScorer(){
+        scorerRightController.setReference(0, ControlType.kDutyCycle);
+        scorerLeftController.setReference(0, ControlType.kDutyCycle);
     }
 
     public void ejectBottomRight(){
-        scorerRightController.setReference(0.15, ControlType.kDutyCycle);
-        scorerLeftController.setReference(0.8, ControlType.kDutyCycle);
+        scorerRightController.setReference(0.05, ControlType.kDutyCycle);
+        scorerLeftController.setReference(0.3, ControlType.kDutyCycle);
     }
 
     public void ejectBottomLeft(){
-        scorerRightController.setReference(0.8, ControlType.kDutyCycle);
-        scorerLeftController.setReference(0.15, ControlType.kDutyCycle);
+        scorerRightController.setReference(0.3, ControlType.kDutyCycle);
+        scorerLeftController.setReference(0.05, ControlType.kDutyCycle);
     }
 
     public void ejectElevated(){
-        scorerRightController.setReference(0.7, ControlType.kDutyCycle);
-        scorerLeftController.setReference(0.7, ControlType.kDutyCycle);
+        scorerRightController.setReference(0.25, ControlType.kDutyCycle);
+        scorerLeftController.setReference(0.25, ControlType.kDutyCycle);
 
     }
 
@@ -101,13 +108,7 @@ public class ScorerSubsystem extends SubsystemBase{
 
     @Override
     public void periodic() {
-        if(Math.abs(controller.getLeftX()) < 0.015) {
-            if (controller.getLeftX() >= 0.015) {
-                ejectBottomRight();
-            }
-            else if (controller.getLeftX() <= -0.015) {
-                ejectBottomLeft();
-            }
-        }
+        SmartDashboard.putNumber("left scorer vel", scorerLeftEncoder.getVelocity());
+        SmartDashboard.putNumber("right scorer vel", scorerRightEncoder.getVelocity());
     }
 }

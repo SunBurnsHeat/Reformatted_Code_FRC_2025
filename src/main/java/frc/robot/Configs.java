@@ -75,8 +75,8 @@ public final class Configs {
                         .positionConversionFactor(1.0 / ElevatorConstants.kElevatorMotorGearRatio)
                         .velocityConversionFactor(1.0 / ElevatorConstants.kElevatorMotorGearRatio / 60.0);
                 leadElevatorMaxConfig.closedLoop
-                        .maxMotion.maxVelocity(ElevatorConstants.kMaxVelocityRPM)
-                        .maxAcceleration(ElevatorConstants.kMaxAccelerationRPMS);
+                        .maxMotion.maxVelocity(ElevatorConstants.kMaxVelocityRaw)
+                        .maxAcceleration(ElevatorConstants.kMaxAccelerationRaw);
                 leadElevatorMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                         .pid(0.1, 0, 0.005)
@@ -94,8 +94,8 @@ public final class Configs {
                         .voltageCompensation(12)
                         .follow(ElevatorConstants.kLeadElevatorMotorCANID, true);
                 followElevatorMaxConfig.closedLoop.maxMotion
-                        .maxVelocity(ElevatorConstants.kMaxVelocityRPM)
-                        .maxAcceleration(ElevatorConstants.kMaxAccelerationRPMS);
+                        .maxVelocity(ElevatorConstants.kMaxVelocityRaw)
+                        .maxAcceleration(ElevatorConstants.kMaxAccelerationRaw);
                 followElevatorMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                         .pid(0.1, 0, 0.002)
@@ -125,6 +125,7 @@ public final class Configs {
 
                 scorerLeftMaxConfig
                         .idleMode(IdleMode.kBrake)
+                        .inverted(false)
                         .smartCurrentLimit(30)
                         .voltageCompensation(12);
                 scorerLeftMaxConfig.encoder
@@ -149,7 +150,7 @@ public final class Configs {
                         .voltageCompensation(12);
                 armMaxConfig.encoder
                         .positionConversionFactor(1.0 * 360.0 / ArmConstants.kArmMotorGearRatio)
-                        .velocityConversionFactor(1.0 / 60.0);
+                        .velocityConversionFactor(1.0 * 360.0 / ArmConstants.kArmMotorGearRatio / 60.0);
                 armMaxConfig.softLimit
                         .forwardSoftLimit(ArmConstants.kArmForwardSoftLimit)
                         .forwardSoftLimitEnabled(true)
@@ -184,11 +185,11 @@ public final class Configs {
                         .idleMode(IdleMode.kBrake)
                         .smartCurrentLimit(40)
                         .voltageCompensation(12);
-                winchMaxConfig.softLimit
-                        .forwardSoftLimit(0)
-                        .forwardSoftLimitEnabled(true)
-                        .reverseSoftLimit(WinchConstants.kTopPosition)
-                        .reverseSoftLimitEnabled(true);
+                // winchMaxConfig.softLimit
+                //         .forwardSoftLimit(0)
+                //         .forwardSoftLimitEnabled(true)
+                //         .reverseSoftLimit(WinchConstants.kTopPosition)
+                //         .reverseSoftLimitEnabled(true);
                 winchMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                         .pid(0.05, 0, 0.002)

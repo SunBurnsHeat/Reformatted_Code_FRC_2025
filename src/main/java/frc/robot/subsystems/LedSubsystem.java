@@ -151,7 +151,7 @@ public class LedSubsystem extends SubsystemBase {
         
             public static void elevatorMsg(){
                 LEDPattern elevatorGradient = LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kTurquoise, Color.kNavy);
-                LEDPattern elevatoPattern = LEDPattern.progressMaskLayer(() -> elevator.getHeight()/ElevatorConstants.kElevatorMaxHeightRaw).overlayOn(elevatorGradient);
+                LEDPattern elevatoPattern = LEDPattern.progressMaskLayer(() -> elevator.getPosition()/ElevatorConstants.kElevatorMaxHeightRaw).overlayOn(elevatorGradient);
                 elevatoPattern.applyTo(elevator_progress_buffer);
                 ledBar.setData(elevator_progress_buffer);
             }
