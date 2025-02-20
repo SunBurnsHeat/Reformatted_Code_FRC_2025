@@ -127,11 +127,24 @@ public final class Constants {
     public static final class ElevatorConstants{
         public static final int kLeadElevatorMotorCANID = 9;
         public static final int kFollowElevatorMotorCANID = 10;
+        
+        public static final double kDt = 0.02;
+        public static final double kMaxVelocity = 1.75;
+        public static final double kMaxAcceleration = 0.75;
+        public static final double kP = 1.3;
+        public static final double kI = 0.0;
+        public static final double kD = 0.7;
+        public static final double kS = 1.1;
+        public static final double kG = 1.2;
+        public static final double kV = 1.3;
 
-        public static final double kS = 0.5;
-        public static final double kG = 2.5;
-        public static final double kV = 1.8;
-        public static final double kA = 0.12;
+        public static final TrapezoidProfile.Constraints elevConstraints =
+        new TrapezoidProfile.Constraints(kMaxVelocity, kMaxAcceleration);
+
+        // public static final double kS = 0.5;
+        // public static final double kG = 2.5;
+        // public static final double kV = 1.8;
+        // public static final double kA = 0.12;
         
 
         public static final double kElevatorMaxHeightRaw = 150;

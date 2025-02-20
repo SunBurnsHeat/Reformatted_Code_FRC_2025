@@ -10,6 +10,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -22,9 +23,11 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private final RelativeEncoder leadElevatorEncoder;
 
+    private final ProfiledPIDController leadElevatorProfiledPIDController;
     private final ElevatorFeedforward elevatorFF;
 
     private final SparkClosedLoopController leadElevatorController;
+
     private double targetPosition;
     
     public ElevatorSubsystem(){
@@ -43,14 +46,21 @@ public class ElevatorSubsystem extends SubsystemBase {
         leadElevatorEncoder.setPosition(0);
         targetPosition = 0.0;
 
+        leadElevatorProfiledPIDController = new ProfiledPIDController(
+            ElevatorConstants.kP, ElevatorConstants.kI, ElevatorConstants.kD, ElevatorConstants.elevConstraints, ElevatorConstants.kDt);
         elevatorFF = new ElevatorFeedforward(ElevatorConstants.kS, ElevatorConstants.kG, ElevatorConstants.kV);
     }
 
     public void setPosition(double position){
-        double velocity = ((position - getPosition())/0.02);
-        double FF = elevatorFF.calculate(velocity);
 
-        leadElevatorController.setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0, FF);
+        leadElevatorProfiledPIDController.setGoal(position);
+        leadElevatorMax.setVoltage(
+        leadElevatorProfiledPIDController.calculate(leadElevatorEncoder.getPosition())
+            + elevatorFF.calculate(leadElevatorProfiledPIDController.getSetpoint().velocity));
+        // double velocity = ((position - getPosition())/0.02);
+        // double FF = elevatorFF.calculate(velocity);
+
+        // leadElevatorController.setReference(position, ControlType.kPosition, ClosedLoopSlot.kSlot0, FF);
         position = targetPosition;
     }
 

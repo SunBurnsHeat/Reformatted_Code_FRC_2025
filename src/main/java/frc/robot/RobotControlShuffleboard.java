@@ -63,7 +63,7 @@ public class RobotControlShuffleboard extends SubsystemBase {
         double winchSpeed = winchSpeedSetpoint.getDouble(0.0);
 
         // Apply values to subsystems
-        elevator.setPosition(elevatorTarget);
+        elevator.setElevator(elevatorTarget);
         arm.setArmPosition(armTarget);
         arm.setArmRoller(rollerSpeed);
         winch.setWinch(winchSpeed);
