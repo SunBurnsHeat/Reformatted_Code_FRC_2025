@@ -188,6 +188,10 @@ public final class Constants {
         public static final int kScorerRightMotorCANID = 16;
         public static final int kScorerLeftMotorCANID = 15;
 
+        public static final double kSensorProxDistanceMM = 12;
+        public static final int kInitLaserCANID = 17;
+        public static final int kEndLaserCANID = 18;
+
         public static final double kIntakeDuty = 0.6;
 
         public static final double kScorerMotorGearRatio = 5;

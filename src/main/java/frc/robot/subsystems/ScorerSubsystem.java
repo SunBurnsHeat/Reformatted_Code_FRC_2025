@@ -8,12 +8,13 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
-import edu.wpi.first.wpilibj.XboxController;
+import au.grapplerobotics.ConfigurationFailedException;
+import au.grapplerobotics.LaserCan;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Configs;
-import frc.robot.Constants.OIConstants;
+import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.ScorerConstants;
 
 public class ScorerSubsystem extends SubsystemBase{
@@ -27,7 +28,9 @@ public class ScorerSubsystem extends SubsystemBase{
     private final SparkClosedLoopController scorerLeftController;
     private double targetSetPoint = 0.0;
 
-    XboxController controller = new XboxController(OIConstants.kCoPilotControllerPort);
+    private LaserCan laserCan_init;
+    private LaserCan laserCan_end;
+
 
     public ScorerSubsystem(){
         CommandScheduler.getInstance().registerSubsystem(this);
@@ -39,6 +42,23 @@ public class ScorerSubsystem extends SubsystemBase{
 
         scorerRightController = scorerRightMax.getClosedLoopController();
         scorerLeftController = scorerLeftMax.getClosedLoopController();
+
+        laserCan_init = new LaserCan(ScorerConstants.kInitLaserCANID);
+        try {
+            laserCan_init.setRangingMode(LaserCan.RangingMode.SHORT);
+            laserCan_init.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
+            laserCan_init.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
+        } catch (ConfigurationFailedException e) {
+            System.out.println("Configuration failed! " + e);
+        }        
+        laserCan_end = new LaserCan(ScorerConstants.kEndLaserCANID);
+        try {
+            laserCan_end.setRangingMode(LaserCan.RangingMode.SHORT);
+            laserCan_end.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
+            laserCan_end.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
+        } catch (ConfigurationFailedException e) {
+            System.out.println("Configuration failed! " + e);
+        }
 
         scorerRightMax.configure(Configs.ScorerSubsystemConfigs.scorerRightMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         scorerLeftMax.configure(Configs.ScorerSubsystemConfigs.scorerLeftMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -52,6 +72,28 @@ public class ScorerSubsystem extends SubsystemBase{
     public void setScorerMaxRight(double setPoint){
         scorerRightMax.set(setPoint);
         targetSetPoint = setPoint;
+    }
+
+    public boolean getProxStateInit(){
+        LaserCan.Measurement measurementInit = laserCan_init.getMeasurement();
+        double initDistance = measurementInit.distance_mm;
+        if (measurementInit != null && measurementInit.status == laserCan_init.LASERCAN_STATUS_VALID_MEASUREMENT) {
+            return initDistance < ScorerConstants.kSensorProxDistanceMM;
+        }
+        else{
+            return false;
+        }
+    }
+
+    public boolean getProxStateEnd(){
+        LaserCan.Measurement measurementEnd = laserCan_end.getMeasurement();
+        double endDistance = measurementEnd.distance_mm;
+        if (measurementEnd != null && measurementEnd.status == laserCan_init.LASERCAN_STATUS_VALID_MEASUREMENT) {
+            return endDistance < ScorerConstants.kSensorProxDistanceMM;
+        }
+        else{
+            return false;
+        }
     }
 
     public void stop(){
