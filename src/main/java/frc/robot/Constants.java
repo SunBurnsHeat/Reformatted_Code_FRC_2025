@@ -127,16 +127,18 @@ public final class Constants {
     public static final class ElevatorConstants{
         public static final int kLeadElevatorMotorCANID = 9;
         public static final int kFollowElevatorMotorCANID = 10;
+
+        public static final double kElevatorSpraketDiameterInches = 1.63;
         
         public static final double kDt = 0.02;
         public static final double kMaxVelocity = 1.75;
         public static final double kMaxAcceleration = 0.75;
-        public static final double kP = 1.3;
+        public static final double kP = 0.01;/*1.3;*/
         public static final double kI = 0.0;
-        public static final double kD = 0.7;
-        public static final double kS = 1.1;
-        public static final double kG = 1.2;
-        public static final double kV = 1.3;
+        public static final double kD = 0.0;
+        public static final double kS = 0;/*1.1;*/
+        public static final double kG = 0;/*1.2;*/
+        public static final double kV = 0;/*1.3;*/
 
         public static final TrapezoidProfile.Constraints elevConstraints =
         new TrapezoidProfile.Constraints(kMaxVelocity, kMaxAcceleration);
@@ -150,8 +152,8 @@ public final class Constants {
         public static final double kElevatorMaxHeightRaw = 150;
         public static final double kElevatorMaxSpeed = 1.0;
 
-        public static final double kMaxVelocityRaw = 1500;
-        public static final double kMaxAccelerationRaw = 400;
+        // public static final double kMaxVelocityRaw = 1500;
+        // public static final double kMaxAccelerationRaw = 400;
 
         public static final double kElevatorMotorGearRatio = 15.0;
 
@@ -176,8 +178,8 @@ public final class Constants {
         public static final double kArmPositionDeadband = 3;
         public static final double kArmRollerSpeedDeadband = 100;
 
-        public static final double kArmForwardSoftLimit = 0;
-        public static final double kArmReverseSoftLimit = 90;
+        public static final double kArmForwardSoftLimit = 120;
+        public static final double kArmReverseSoftLimit = 0;
 
         public static final double kFullExtendPosition = 90;
         public static final double kStowPosition = 0;

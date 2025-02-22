@@ -7,11 +7,13 @@ import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Configs;
 import frc.robot.Constants.ArmConstants;
+import frc.robot.Constants.OIConstants;
 
 public class ArmSubsystem extends SubsystemBase{
     
@@ -26,6 +28,8 @@ public class ArmSubsystem extends SubsystemBase{
 
     private Double targetPosition;
     private Double targetSetpoint;
+
+    private final XboxController controller = new XboxController(OIConstants.kCoPilotControllerPort);
 
     public ArmSubsystem(){
         CommandScheduler.getInstance().registerSubsystem(this);
@@ -45,9 +49,13 @@ public class ArmSubsystem extends SubsystemBase{
         targetSetpoint = 0.0;
     }
 
+    public void setArm(double targetSetPoint){
+        armMotorController.setReference(targetSetPoint, ControlType.kDutyCycle);
+    }
+
     public void setArmRoller(double speed){ // speed is in RPM
         targetSetpoint = speed;
-        rollerMotorController.setReference(speed, ControlType.kDutyCycle);
+        rollerMotorController.setReference(speed, ControlType.kVelocity);
     }
 
     public void setArmPosition(double position){ // position is in degrees
@@ -96,19 +104,12 @@ public class ArmSubsystem extends SubsystemBase{
     @Override
     public void periodic(){
 
-        if(targetPosition != null){
-            SmartDashboard.putNumber("Arm Target Pos", targetPosition);
-            setArmPosition(targetPosition);
-        }        
-
-        if (targetSetpoint != null){
-            SmartDashboard.putNumber("Arm Target Speed", targetSetpoint);
-            setArmPosition(targetSetpoint);
+        if(Math.abs(controller.getLeftY()) < 0.015) {
+            setArmRoller(0);
         }
-        
-
-        SmartDashboard.putNumber("Current Arm Pos", getArmPosition());
-        SmartDashboard.putNumber("Current Roller Speed", getRollerVelocity());
+        else {
+            setArmRoller(controller.getLeftY());
+        }
 
         SmartDashboard.putBoolean("Arm at Position", atPosition());
         SmartDashboard.putBoolean("Roller at Speed", atSpeed());

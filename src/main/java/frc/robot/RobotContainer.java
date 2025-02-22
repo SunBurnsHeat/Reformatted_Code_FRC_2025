@@ -8,12 +8,11 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.DefaultDriveCommand;
+import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.ScorerSubsystem;
 import frc.robot.subsystems.WinchSubsystem;
-
-import static edu.wpi.first.units.Units.Newton;
 
 import java.util.List;
 
@@ -35,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
@@ -49,6 +49,7 @@ public class RobotContainer {
   private final ElevatorSubsystem elevator = new ElevatorSubsystem();
   private final WinchSubsystem winch = new WinchSubsystem();
   private final ScorerSubsystem scorer = new ScorerSubsystem();
+  private final ArmSubsystem arm = new ArmSubsystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driverControllerCommand =
@@ -72,9 +73,12 @@ public class RobotContainer {
     driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
 
     coPilotControllerCommand.x().whileTrue(new StartEndCommand(() -> scorer.ejectBottomLeft(), () -> scorer.stopScorer()));
-    coPilotControllerCommand.b().whileTrue(new StartEndCommand(() -> scorer.ejectBottomRight(), () -> scorer.stopScorer()));    // coPilotControllerCommand.a().whileTrue(new RunCommand(() -> scorer.intake()));
+    coPilotControllerCommand.b().whileTrue(new StartEndCommand(() -> scorer.ejectBottomRight(), () -> scorer.stopScorer())); 
+    // coPilotControllerCommand.a().whileTrue(new RunCommand(() -> scorer.intake()));
 
-    new Trigger(this::leftTrigger).whileTrue(new StartEndCommand(() -> scorer.intake(), () -> scorer.stopScorer()));
+    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> arm.setArmPosition(30)));
+    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> arm.setArmPosition(0)));
+    // new Trigger(this::leftTrigger).whileTrue(new InstantCommand(() -> elevator.setElevator(0.1),elevator));
     new Trigger(this::rightTrigger).whileTrue(new StartEndCommand(() -> scorer.ejectElevated(), () -> scorer.stopScorer()));
   }
 

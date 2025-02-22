@@ -72,20 +72,20 @@ public final class Configs {
                         .smartCurrentLimit(40)
                         .voltageCompensation(12);
                 leadElevatorMaxConfig.encoder
-                        .positionConversionFactor(1.0 / ElevatorConstants.kElevatorMotorGearRatio)
-                        .velocityConversionFactor(1.0 / ElevatorConstants.kElevatorMotorGearRatio / 60.0);
-                leadElevatorMaxConfig.closedLoop
-                        .maxMotion.maxVelocity(ElevatorConstants.kMaxVelocityRaw)
-                        .maxAcceleration(ElevatorConstants.kMaxAccelerationRaw);
+                        .positionConversionFactor(2.0*Math.PI*ElevatorConstants.kElevatorSpraketDiameterInches / ElevatorConstants.kElevatorMotorGearRatio)
+                        .velocityConversionFactor(2.0*Math.PI*ElevatorConstants.kElevatorSpraketDiameterInches / ElevatorConstants.kElevatorMotorGearRatio / 60.0);
+                // leadElevatorMaxConfig.closedLoop
+                //         .maxMotion.maxVelocity(0.5)
+                //         .maxAcceleration(0.1);
                 leadElevatorMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                        .pid(0.1, 0, 0.005)
+                        // .pid(0.1, 0, 0.005)
                         .outputRange(-1, 1);
-                leadElevatorMaxConfig.softLimit
-                        .forwardSoftLimit(ElevatorConstants.kElevatorForwardSoftLimit)
-                        .forwardSoftLimitEnabled(true)
-                        .reverseSoftLimit(ElevatorConstants.kElevatorReverseSoftLimit)
-                        .reverseSoftLimitEnabled(true);
+                // leadElevatorMaxConfig.softLimit
+                //         .forwardSoftLimit(30)
+                //         .forwardSoftLimitEnabled(true)
+                //         .reverseSoftLimit(0)
+                //         .reverseSoftLimitEnabled(true);
                 
 
                 followElevatorMaxConfig
@@ -93,12 +93,12 @@ public final class Configs {
                         .smartCurrentLimit(40)
                         .voltageCompensation(12)
                         .follow(ElevatorConstants.kLeadElevatorMotorCANID, true);
-                followElevatorMaxConfig.closedLoop.maxMotion
-                        .maxVelocity(ElevatorConstants.kMaxVelocityRaw)
-                        .maxAcceleration(ElevatorConstants.kMaxAccelerationRaw);
+                // followElevatorMaxConfig.closedLoop.maxMotion
+                //         .maxVelocity(.5)
+                //         .maxAcceleration(.1);
                 followElevatorMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                        .pid(0.1, 0, 0.002)
+                        // .pid(0.1, 0, 0.002)
                         .outputRange(-1, 1);
         }
 
