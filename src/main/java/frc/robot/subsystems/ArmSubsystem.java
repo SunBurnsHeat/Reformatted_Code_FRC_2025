@@ -4,9 +4,12 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -17,22 +20,27 @@ import frc.robot.Constants.OIConstants;
 
 public class ArmSubsystem extends SubsystemBase{
     
-    private final SparkMax armMax = new SparkMax(ArmConstants.kArmMotorCANID, SparkMax.MotorType.kBrushless);
-    private final SparkMax rollerMax = new SparkMax(ArmConstants.kArmRollerMotorCANID, SparkMax.MotorType.kBrushless);
+    private final SparkMax armMax;
+    private final SparkMax rollerMax;
 
     private final RelativeEncoder armMotorEncoder;
     private final RelativeEncoder rollerMotorEncoder;
 
+    private ArmFeedforward armFF;
+
     private final SparkClosedLoopController armMotorController;
     private final SparkClosedLoopController rollerMotorController;
 
-    private Double targetPosition;
-    private Double targetSetpoint;
+    private double targetPosition = 0.0;
+    private double targetSetpoint = 0.0;
 
-    private final XboxController controller = new XboxController(OIConstants.kCoPilotControllerPort);
+    // private final XboxController controller = new XboxController(OIConstants.kCoPilotControllerPort);
 
     public ArmSubsystem(){
         CommandScheduler.getInstance().registerSubsystem(this);
+
+        armMax = new SparkMax(ArmConstants.kArmMotorCANID, SparkMax.MotorType.kBrushless);
+        rollerMax = new SparkMax(ArmConstants.kArmRollerMotorCANID, SparkMax.MotorType.kBrushless);
 
         armMotorEncoder = armMax.getEncoder();
         rollerMotorEncoder = rollerMax.getEncoder();
@@ -45,22 +53,16 @@ public class ArmSubsystem extends SubsystemBase{
 
         armMotorEncoder.setPosition(0);
 
-        targetPosition = 0.0;
-        targetSetpoint = 0.0;
+        armFF = new ArmFeedforward(ArmConstants.kS, ArmConstants.kG, ArmConstants.kV);
     }
 
-    public void setArm(double targetSetPoint){
-        armMotorController.setReference(targetSetPoint, ControlType.kDutyCycle);
-    }
-
-    public void setArmRoller(double speed){ // speed is in RPM
-        targetSetpoint = speed;
-        rollerMotorController.setReference(speed, ControlType.kVelocity);
+    public void setArmRoller(double rollerSetpoint){ // speed is in RPM
+        targetSetpoint = rollerSetpoint;
+        rollerMotorController.setReference(rollerSetpoint, ControlType.kDutyCycle);
     }
 
     public void setArmPosition(double position){ // position is in degrees
         targetPosition = position;
-        armMotorController.setReference(position, ControlType.kPosition);
     }
 
     public double getArmPosition(){
@@ -73,24 +75,11 @@ public class ArmSubsystem extends SubsystemBase{
 
     public void stopArm(){
         armMotorController.setReference(0, ControlType.kDutyCycle);
-        targetPosition = null;
+        targetPosition = armMotorEncoder.getPosition();
     }
 
     public void stopRoller(){
         rollerMotorController.setReference(0, ControlType.kDutyCycle);
-        targetSetpoint = null;
-    }
-
-    public void stow(){
-        armMotorController.setReference(ArmConstants.kStowPosition, ControlType.kPosition);
-    }
-
-    public void fullExtend(){
-        armMotorController.setReference(ArmConstants.kFullExtendPosition, ControlType.kPosition);
-    }
-
-    public void partialExtend(){
-        armMotorController.setReference(ArmConstants.kPartialPosition, ControlType.kPosition);
     }
 
     public boolean atPosition(){
@@ -104,13 +93,24 @@ public class ArmSubsystem extends SubsystemBase{
     @Override
     public void periodic(){
 
-        if(Math.abs(controller.getLeftY()) < 0.015) {
-            setArmRoller(0);
+        // if(Math.abs(controller.getLeftY()) < 0.015) {
+        //     setArmRoller(0);
+        // }
+        // else {
+        //     setArmRoller(controller.getLeftY());
+        // }
+        double velocity = ((targetPosition - getArmPosition())/0.01);
+        double FF = armFF.calculate(Units.degreesToRadians(targetPosition), velocity);    
+        
+        if (!atPosition()) {
+            armMotorController.setReference(targetPosition, ControlType.kPosition, ClosedLoopSlot.kSlot0, FF);
         }
-        else {
-            setArmRoller(controller.getLeftY());
+        else{
+            armMotorController.setReference(0, ControlType.kDutyCycle);
         }
 
+        SmartDashboard.putNumber("Arm Target Position", targetPosition);
+        SmartDashboard.putNumber("Arm Position", getArmPosition());
         SmartDashboard.putBoolean("Arm at Position", atPosition());
         SmartDashboard.putBoolean("Roller at Speed", atSpeed());
     }

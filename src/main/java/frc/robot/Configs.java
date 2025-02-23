@@ -3,6 +3,9 @@ package frc.robot;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
+import edu.wpi.first.math.controller.ElevatorFeedforward;
+
 import com.revrobotics.spark.config.SparkFlexConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
@@ -74,18 +77,20 @@ public final class Configs {
                 leadElevatorMaxConfig.encoder
                         .positionConversionFactor(2.0*Math.PI*ElevatorConstants.kElevatorSpraketDiameterInches / ElevatorConstants.kElevatorMotorGearRatio)
                         .velocityConversionFactor(2.0*Math.PI*ElevatorConstants.kElevatorSpraketDiameterInches / ElevatorConstants.kElevatorMotorGearRatio / 60.0);
-                // leadElevatorMaxConfig.closedLoop
-                //         .maxMotion.maxVelocity(0.5)
-                //         .maxAcceleration(0.1);
+                leadElevatorMaxConfig.closedLoop
+                        .maxMotion.maxVelocity(ElevatorConstants.kMaxVelocity)
+                        .maxAcceleration(ElevatorConstants.kMaxAcceleration);
                 leadElevatorMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                        // .pid(0.1, 0, 0.005)
+                        .pid(0.15, 1e-5, 0)
+                        .iZone(4.0)
+                        .velocityFF(0.01)
                         .outputRange(-1, 1);
-                // leadElevatorMaxConfig.softLimit
-                //         .forwardSoftLimit(30)
-                //         .forwardSoftLimitEnabled(true)
-                //         .reverseSoftLimit(0)
-                //         .reverseSoftLimitEnabled(true);
+                leadElevatorMaxConfig.softLimit
+                        .forwardSoftLimit(50)
+                        .forwardSoftLimitEnabled(true)
+                        .reverseSoftLimit(0)
+                        .reverseSoftLimitEnabled(true);
                 
 
                 followElevatorMaxConfig
@@ -93,14 +98,10 @@ public final class Configs {
                         .smartCurrentLimit(40)
                         .voltageCompensation(12)
                         .follow(ElevatorConstants.kLeadElevatorMotorCANID, true);
-                // followElevatorMaxConfig.closedLoop.maxMotion
-                //         .maxVelocity(.5)
-                //         .maxAcceleration(.1);
-                followElevatorMaxConfig.closedLoop
-                        .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                        // .pid(0.1, 0, 0.002)
-                        .outputRange(-1, 1);
-        }
+                followElevatorMaxConfig.closedLoop.maxMotion
+                        .maxVelocity(ElevatorConstants.kMaxVelocity)
+                        .maxAcceleration(ElevatorConstants.kMaxAcceleration);
+                }
 
     }
 
@@ -157,8 +158,13 @@ public final class Configs {
                         .reverseSoftLimit(ArmConstants.kArmReverseSoftLimit)
                         .reverseSoftLimitEnabled(true);
                 armMaxConfig.closedLoop
-                        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
-                        .pid(0.01, 0, 0)
+                        .maxMotion.maxVelocity(2.5)
+                        .maxAcceleration(1.25);
+                armMaxConfig.closedLoop
+                        .feedbackSensor(FeedbackSensor.kPrimaryEncoder) // set to absolute encoder
+                        .pid(0.015, 5e-4, 0)
+                        .iZone(1.0)
+                        .velocityFF(0.0)
                         .outputRange(-1, 1);
 
                 rollerMaxConfig

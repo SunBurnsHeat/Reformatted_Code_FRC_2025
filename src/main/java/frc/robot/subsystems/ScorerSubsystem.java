@@ -30,6 +30,9 @@ public class ScorerSubsystem extends SubsystemBase{
     // private LaserCan laserCan_init;
     // private LaserCan laserCan_end;
 
+    // private boolean initProx;
+    // private boolean endProx;
+
 
     public ScorerSubsystem(){
         CommandScheduler.getInstance().registerSubsystem(this);
@@ -99,7 +102,6 @@ public class ScorerSubsystem extends SubsystemBase{
         scorerRightController.setReference(0, ControlType.kDutyCycle);
         scorerLeftController.setReference(0, ControlType.kDutyCycle);
 
-        targetSetPoint = 0;
     }
 
     public void setScorerVelocityRPM(double velocity){
@@ -122,12 +124,12 @@ public class ScorerSubsystem extends SubsystemBase{
     //     double kSlowSpeed = 0.2;
     //     double kBrake = 0.0;
 
-    //     if (getProxStateEnd()) {
+    //     if (endProx) {
     //         scorerRightController.setReference(kBrake, ControlType.kDutyCycle);
     //         scorerLeftController.setReference(kBrake, ControlType.kDutyCycle);    
     //     }
 
-    //     else if (getProxStateInit()) {
+    //     else if (initProx) {
     //         scorerRightController.setReference(kSlowSpeed, ControlType.kDutyCycle);
     //         scorerLeftController.setReference(kSlowSpeed, ControlType.kDutyCycle);
     //     }
@@ -165,6 +167,9 @@ public class ScorerSubsystem extends SubsystemBase{
 
     @Override
     public void periodic() {
+        // initProx = getProxStateInit();
+        // endProx = getProxStateEnd();
+
         SmartDashboard.putNumber("left scorer vel", scorerLeftEncoder.getVelocity());
         SmartDashboard.putNumber("right scorer vel", scorerRightEncoder.getVelocity());
     }

@@ -6,6 +6,7 @@ package frc.robot;
 
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.DefaultDriveCommand;
 import frc.robot.subsystems.ArmSubsystem;
@@ -26,6 +27,7 @@ import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -67,19 +69,29 @@ public class RobotContainer {
 
   
   private void configureBindings() {
+    // elevator.setDefaultCommand(new DefaultElevatorCommand(elevator));
     robotDrive.setDefaultCommand(new DefaultDriveCommand(robotDrive));
 
     driverControllerCommand.x().whileTrue(new RunCommand(() -> robotDrive.setX()));
     driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
 
-    coPilotControllerCommand.x().whileTrue(new StartEndCommand(() -> scorer.ejectBottomLeft(), () -> scorer.stopScorer()));
-    coPilotControllerCommand.b().whileTrue(new StartEndCommand(() -> scorer.ejectBottomRight(), () -> scorer.stopScorer())); 
-    // coPilotControllerCommand.a().whileTrue(new RunCommand(() -> scorer.intake()));
+    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> arm.setArmPosition(0), arm));
+    coPilotControllerCommand.b().whileTrue(new StartEndCommand(() -> arm.setArmRoller(0.3), () -> arm.setArmRoller(0)));
+    coPilotControllerCommand.x().whileTrue(new StartEndCommand(() -> arm.setArmRoller(-0.25), () -> arm.setArmRoller(0)));
+    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> arm.setArmPosition(70), arm));
 
-    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> arm.setArmPosition(30)));
-    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> arm.setArmPosition(0)));
-    // new Trigger(this::leftTrigger).whileTrue(new InstantCommand(() -> elevator.setElevator(0.1),elevator));
+    new JoystickButton(copilotController, Button.kLeftBumper.value).whileTrue(new StartEndCommand(() -> scorer.ejectBottomLeft(), 
+      () -> scorer.stopScorer()));
+    new JoystickButton(copilotController, Button.kRightBumper.value).whileTrue(new StartEndCommand(() -> scorer.ejectBottomRight(), 
+      () -> scorer.stopScorer()));
+    // new Trigger(this::leftTrigger).whileTrue(new RunCommand(() -> scorer.intake(), scorer));
     new Trigger(this::rightTrigger).whileTrue(new StartEndCommand(() -> scorer.ejectElevated(), () -> scorer.stopScorer()));
+
+    coPilotControllerCommand.povUp().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3), elevator));
+    coPilotControllerCommand.povDown().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L0), elevator));
+    coPilotControllerCommand.povRight().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L1), elevator));
+    coPilotControllerCommand.povLeft().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L2), elevator));
+
   }
 
   private boolean leftTrigger() {
@@ -153,7 +165,6 @@ public class RobotContainer {
     autoType.addOption("Four Piece Right", AutoType.Four_Piece_Right);
     autoType.setDefaultOption("Three Piece Left", AutoType.Three_Piece_Left);
     SmartDashboard.putData("Auto Type", autoType);
-
   }
 
   public enum AutoType {
@@ -196,7 +207,7 @@ public class RobotContainer {
       getThetaController(),
       robotDrive::setModuleStates,
       robotDrive);
-    return command.andThen(() -> robotDrive.drive(0, 0, 0, false, false));
+    return command.andThen(() -> robotDrive.drive(0, 0, 0, true, true));
   }
 
   private Command moveForwardCommand(){

@@ -131,13 +131,13 @@ public final class Constants {
         public static final double kElevatorSpraketDiameterInches = 1.63;
         
         public static final double kDt = 0.02;
-        public static final double kMaxVelocity = 1.75;
-        public static final double kMaxAcceleration = 0.75;
-        public static final double kP = 0.01;/*1.3;*/
-        public static final double kI = 0.0;
+        public static final double kMaxVelocity = Units.metersToInches(2.0);
+        public static final double kMaxAcceleration = Units.metersToInches(1.5);
+        public static final double kP = 0.15;/*1.3;*/
+        public static final double kI = 1e-4;
         public static final double kD = 0.0;
-        public static final double kS = 0;/*1.1;*/
-        public static final double kG = 0;/*1.2;*/
+        public static final double kS = 0.1;/*1.1;*/
+        public static final double kG = 0.5;/*1.2;*/
         public static final double kV = 0;/*1.3;*/
 
         public static final TrapezoidProfile.Constraints elevConstraints =
@@ -160,12 +160,12 @@ public final class Constants {
         public static final double kElevatorForwardSoftLimit = kElevatorMaxHeightRaw;
         public static final double kElevatorReverseSoftLimit = 0;
 
-        public static final double kElevatorHeightDeadbandRaw = 2;
+        public static final double kElevatorHeightDeadbandInches = 0.5;
 
-        public static final double kElevatorPosition_L0_Raw = 12;
-        public static final double kElevatorPosition_L2_Raw = 24;
-        public static final double kElevatorPosition_L1_Raw = 18;
-        public static final double kElevatorPosition_L3_Raw = 30;
+        public static final double kElevatorPosition_L0 = 0;
+        public static final double kElevatorPosition_L1 = 12;
+        public static final double kElevatorPosition_L2 = 20;
+        public static final double kElevatorPosition_L3 = 25;
     }
 
     public static final class ArmConstants{
@@ -174,6 +174,11 @@ public final class Constants {
 
         public static final double kArmMotorGearRatio = 15;
         public static final double kArmRollerMotorGearRatio = 4;
+
+        public static final double kS = 0.001;/*1.1;*/
+        public static final double kG = 0.0025;/*1.2;*/
+        public static final double kV = 0;/*1.3;*/
+
 
         public static final double kArmPositionDeadband = 3;
         public static final double kArmRollerSpeedDeadband = 100;
