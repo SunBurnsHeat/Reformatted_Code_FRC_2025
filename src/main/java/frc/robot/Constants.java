@@ -137,7 +137,7 @@ public final class Constants {
         public static final double kI = 1e-4;
         public static final double kD = 0.0;
         public static final double kS = 0.1;/*1.1;*/
-        public static final double kG = 0.5;/*1.2;*/
+        public static final double kG = 0.65;/*1.2;*/
         public static final double kV = 0;/*1.3;*/
 
         public static final TrapezoidProfile.Constraints elevConstraints =
@@ -165,14 +165,14 @@ public final class Constants {
         public static final double kElevatorPosition_L0 = 0;
         public static final double kElevatorPosition_L1 = 12;
         public static final double kElevatorPosition_L2 = 20;
-        public static final double kElevatorPosition_L3 = 25;
+        public static final double kElevatorPosition_L3 = 45;
     }
 
     public static final class ArmConstants{
         public static final int kArmMotorCANID = 13;
         public static final int kArmRollerMotorCANID = 14;
 
-        public static final double kArmMotorGearRatio = 15;
+        public static final double kArmMotorGearRatio = 75;
         public static final double kArmRollerMotorGearRatio = 4;
 
         public static final double kS = 0.001;/*1.1;*/
@@ -180,10 +180,10 @@ public final class Constants {
         public static final double kV = 0;/*1.3;*/
 
 
-        public static final double kArmPositionDeadband = 3;
+        public static final double kArmPositionDeadband = 01;
         public static final double kArmRollerSpeedDeadband = 100;
 
-        public static final double kArmForwardSoftLimit = 120;
+        public static final double kArmForwardSoftLimit = 60;
         public static final double kArmReverseSoftLimit = 0;
 
         public static final double kFullExtendPosition = 90;

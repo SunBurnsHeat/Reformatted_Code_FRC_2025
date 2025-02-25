@@ -82,15 +82,20 @@ public final class Configs {
                         .maxAcceleration(ElevatorConstants.kMaxAcceleration);
                 leadElevatorMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                        .pid(0.15, 1e-5, 0)
-                        .iZone(4.0)
-                        .velocityFF(0.01)
-                        .outputRange(-1, 1);
+                        .pid(0.145, 2e-5, 0)
+                        .iZone(0.2)
+                        .velocityFF(0.0)
+                        .outputRange(-0.2, 0.2);
                 leadElevatorMaxConfig.softLimit
-                        .forwardSoftLimit(50)
+                        .forwardSoftLimit(45)
                         .forwardSoftLimitEnabled(true)
                         .reverseSoftLimit(0)
                         .reverseSoftLimitEnabled(true);
+                leadElevatorMaxConfig.limitSwitch
+                        .forwardLimitSwitchEnabled(true)
+                        .forwardLimitSwitchType(Type.kNormallyOpen)
+                        .reverseLimitSwitchEnabled(true)
+                        .reverseLimitSwitchType(Type.kNormallyOpen);
                 
 
                 followElevatorMaxConfig
@@ -147,25 +152,26 @@ public final class Configs {
         static{
                 armMaxConfig
                         .idleMode(IdleMode.kBrake)
+                        .inverted(true)
                         .smartCurrentLimit(40)
                         .voltageCompensation(12);
-                armMaxConfig.encoder
-                        .positionConversionFactor(1.0 * 360.0 / ArmConstants.kArmMotorGearRatio)
-                        .velocityConversionFactor(1.0 * 360.0 / ArmConstants.kArmMotorGearRatio / 60.0);
-                armMaxConfig.softLimit
-                        .forwardSoftLimit(ArmConstants.kArmForwardSoftLimit)
-                        .forwardSoftLimitEnabled(true)
-                        .reverseSoftLimit(ArmConstants.kArmReverseSoftLimit)
-                        .reverseSoftLimitEnabled(true);
+                armMaxConfig.absoluteEncoder
+                        .positionConversionFactor(360)
+                        .velocityConversionFactor(360 / 60.0);
+                // armMaxConfig.softLimit
+                //         .forwardSoftLimit(ArmConstants.kArmForwardSoftLimit)
+                //         .forwardSoftLimitEnabled(true)
+                //         .reverseSoftLimit(ArmConstants.kArmReverseSoftLimit)
+                //         .reverseSoftLimitEnabled(true);
+                // armMaxConfig.closedLoop
+                //         .maxMotion.maxVelocity(2.5)
+                //         .maxAcceleration(1.25);
                 armMaxConfig.closedLoop
-                        .maxMotion.maxVelocity(2.5)
-                        .maxAcceleration(1.25);
-                armMaxConfig.closedLoop
-                        .feedbackSensor(FeedbackSensor.kPrimaryEncoder) // set to absolute encoder
-                        .pid(0.015, 5e-4, 0)
-                        .iZone(1.0)
+                        .feedbackSensor(FeedbackSensor.kAbsoluteEncoder) // set to absolute encoder
+                        .pid(0.015, 0e-4, 0)
+                        .iZone(0.0)
                         .velocityFF(0.0)
-                        .outputRange(-1, 1);
+                        .outputRange(-.45, .45);
 
                 rollerMaxConfig
                         .idleMode(IdleMode.kBrake)

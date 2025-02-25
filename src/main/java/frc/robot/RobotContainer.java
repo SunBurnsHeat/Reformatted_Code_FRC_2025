@@ -75,10 +75,10 @@ public class RobotContainer {
     driverControllerCommand.x().whileTrue(new RunCommand(() -> robotDrive.setX()));
     driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
 
-    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> arm.setArmPosition(0), arm));
+    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> arm.setArmPosition(200), arm));
     coPilotControllerCommand.b().whileTrue(new StartEndCommand(() -> arm.setArmRoller(0.3), () -> arm.setArmRoller(0)));
     coPilotControllerCommand.x().whileTrue(new StartEndCommand(() -> arm.setArmRoller(-0.25), () -> arm.setArmRoller(0)));
-    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> arm.setArmPosition(70), arm));
+    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> arm.setArmPosition(110), arm));
 
     new JoystickButton(copilotController, Button.kLeftBumper.value).whileTrue(new StartEndCommand(() -> scorer.ejectBottomLeft(), 
       () -> scorer.stopScorer()));

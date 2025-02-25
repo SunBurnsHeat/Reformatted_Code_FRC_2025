@@ -96,6 +96,10 @@ public class ElevatorSubsystem extends SubsystemBase {
         targetPosition = leadElevatorEncoder.getPosition();
     }
 
+    public void setLeadElevPosition(double position){
+        leadElevatorEncoder.setPosition(position);
+    }
+
     public boolean atHeight(){
         return Math.abs(getPosition() - targetPosition) < ElevatorConstants.kElevatorHeightDeadbandInches;
     }
@@ -110,14 +114,16 @@ public class ElevatorSubsystem extends SubsystemBase {
         //     setElevator(controller.getLeftY()*(-1));
         // }
             if (!atHeight()) {
-                leadElevatorProfiledPIDController.setGoal(targetPosition);
-                leadElevatorMax.setVoltage(
-                leadElevatorProfiledPIDController.calculate(leadElevatorEncoder.getPosition())
-                    + elevatorFF.calculate(leadElevatorProfiledPIDController.getSetpoint().velocity));    
+                // leadElevatorProfiledPIDController.setGoal(targetPosition);
+                // leadElevatorMax.setVoltage(
+                // leadElevatorProfiledPIDController.calculate(leadElevatorEncoder.getPosition())
+                //     + elevatorFF.calculate(leadElevatorProfiledPIDController.getSetpoint().velocity));    
+
+                leadElevatorController.setReference(targetPosition, ControlType.kPosition);
             }
-            else{
-                leadElevatorController.setReference(0, ControlType.kDutyCycle);
-            }
+            // else{
+            //     leadElevatorController.setReference(0, ControlType.kDutyCycle);
+            // }
 
         SmartDashboard.putNumber("Elevator Pos", getPosition());
         SmartDashboard.putBoolean("Elevator At Pos", atHeight());

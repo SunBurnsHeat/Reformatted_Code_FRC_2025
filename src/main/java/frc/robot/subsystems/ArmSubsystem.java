@@ -1,9 +1,11 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.config.AbsoluteEncoderConfig;
 import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
@@ -23,7 +25,7 @@ public class ArmSubsystem extends SubsystemBase{
     private final SparkMax armMax;
     private final SparkMax rollerMax;
 
-    private final RelativeEncoder armMotorEncoder;
+    private final AbsoluteEncoder armMotorEncoder;
     private final RelativeEncoder rollerMotorEncoder;
 
     private ArmFeedforward armFF;
@@ -31,7 +33,7 @@ public class ArmSubsystem extends SubsystemBase{
     private final SparkClosedLoopController armMotorController;
     private final SparkClosedLoopController rollerMotorController;
 
-    private double targetPosition = 0.0;
+    private double targetPosition = 200.0;
     private double targetSetpoint = 0.0;
 
     // private final XboxController controller = new XboxController(OIConstants.kCoPilotControllerPort);
@@ -42,7 +44,7 @@ public class ArmSubsystem extends SubsystemBase{
         armMax = new SparkMax(ArmConstants.kArmMotorCANID, SparkMax.MotorType.kBrushless);
         rollerMax = new SparkMax(ArmConstants.kArmRollerMotorCANID, SparkMax.MotorType.kBrushless);
 
-        armMotorEncoder = armMax.getEncoder();
+        armMotorEncoder = armMax.getAbsoluteEncoder();
         rollerMotorEncoder = rollerMax.getEncoder();
 
         armMotorController = armMax.getClosedLoopController();
@@ -50,8 +52,6 @@ public class ArmSubsystem extends SubsystemBase{
 
         armMax.configure(Configs.ArmSubsystemConfigs.armMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         rollerMax.configure(Configs.ArmSubsystemConfigs.rollerMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        armMotorEncoder.setPosition(0);
 
         armFF = new ArmFeedforward(ArmConstants.kS, ArmConstants.kG, ArmConstants.kV);
     }
@@ -99,16 +99,17 @@ public class ArmSubsystem extends SubsystemBase{
         // else {
         //     setArmRoller(controller.getLeftY());
         // }
-        double velocity = ((targetPosition - getArmPosition())/0.01);
-        double FF = armFF.calculate(Units.degreesToRadians(targetPosition), velocity);    
+        // double velocity = ((targetPosition - getArmPosition())/0.01);
+        // double FF = armFF.calculate(Units.degreesToRadians(targetPosition), velocity);    
         
-        if (!atPosition()) {
-            armMotorController.setReference(targetPosition, ControlType.kPosition, ClosedLoopSlot.kSlot0, FF);
-        }
-        else{
-            armMotorController.setReference(0, ControlType.kDutyCycle);
-        }
+        // if (!atPosition()) {
+            armMotorController.setReference(targetPosition, ControlType.kPosition/* , ClosedLoopSlot.kSlot0 , FF*/);
+        // }
+        // else{
+        //     armMotorController.setReference(0, ControlType.kDutyCycle);
+        // }
 
+        SmartDashboard.putNumber("Arm Output", armMax.getAppliedOutput());
         SmartDashboard.putNumber("Arm Target Position", targetPosition);
         SmartDashboard.putNumber("Arm Position", getArmPosition());
         SmartDashboard.putBoolean("Arm at Position", atPosition());
