@@ -27,11 +27,13 @@ public class ScorerSubsystem extends SubsystemBase{
     private final SparkClosedLoopController scorerLeftController;
     private double targetSetPoint = 0.0;
 
-    // private LaserCan laserCan_init;
-    // private LaserCan laserCan_end;
+    private LaserCan laserCan_init;
+    private LaserCan laserCan_end;
 
-    // private boolean initProx;
-    // private boolean endProx;
+    public boolean intakable = false;
+
+    private boolean prevEndProx = false;
+    private boolean prevInitProx = false;
 
 
     public ScorerSubsystem(){
@@ -45,22 +47,22 @@ public class ScorerSubsystem extends SubsystemBase{
         scorerRightController = scorerRightMax.getClosedLoopController();
         scorerLeftController = scorerLeftMax.getClosedLoopController();
 
-        // laserCan_init = new LaserCan(ScorerConstants.kInitLaserCANID);
-        // try {
-        //     laserCan_init.setRangingMode(LaserCan.RangingMode.SHORT);
-        //     laserCan_init.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
-        //     laserCan_init.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
-        // } catch (ConfigurationFailedException e) {
-        //     System.out.println("Configuration failed! " + e);
-        // }        
-        // laserCan_end = new LaserCan(ScorerConstants.kEndLaserCANID);
-        // try {
-        //     laserCan_end.setRangingMode(LaserCan.RangingMode.SHORT);
-        //     laserCan_end.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
-        //     laserCan_end.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
-        // } catch (ConfigurationFailedException e) {
-        //     System.out.println("Configuration failed! " + e);
-        // }
+        laserCan_init = new LaserCan(ScorerConstants.kInitLaserCANID);
+        try {
+            laserCan_init.setRangingMode(LaserCan.RangingMode.SHORT);
+            laserCan_init.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
+            laserCan_init.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
+        } catch (ConfigurationFailedException e) {
+            System.out.println("Configuration failed! " + e);
+        }        
+        laserCan_end = new LaserCan(ScorerConstants.kEndLaserCANID);
+        try {
+            laserCan_end.setRangingMode(LaserCan.RangingMode.SHORT);
+            laserCan_end.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
+            laserCan_end.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
+        } catch (ConfigurationFailedException e) {
+            System.out.println("Configuration failed! " + e);
+        }
 
         scorerRightMax.configure(Configs.ScorerSubsystemConfigs.scorerRightMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         scorerLeftMax.configure(Configs.ScorerSubsystemConfigs.scorerLeftMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -76,32 +78,31 @@ public class ScorerSubsystem extends SubsystemBase{
     //     targetSetPoint = setPoint;
     // }
 
-    // public boolean getProxStateInit(){
-    //     LaserCan.Measurement measurementInit = laserCan_init.getMeasurement();
-    //     double initDistance = measurementInit.distance_mm;
-    //     if (measurementInit != null && measurementInit.status == laserCan_init.LASERCAN_STATUS_VALID_MEASUREMENT) {
-    //         return initDistance < ScorerConstants.kSensorProxDistanceMM;
-    //     }
-    //     else{
-    //         return false;
-    //     }
-    // }
+    public boolean getProxStateInit(){
+        LaserCan.Measurement measurementInit = laserCan_init.getMeasurement();
+        double initDistance = measurementInit.distance_mm;
+        if (measurementInit != null && measurementInit.status == laserCan_init.LASERCAN_STATUS_VALID_MEASUREMENT) {
+            return initDistance < ScorerConstants.kSensorProxDistanceMM;
+        }
+        else{
+            return false;
+        }
+    }
 
-    // public boolean getProxStateEnd(){
-    //     LaserCan.Measurement measurementEnd = laserCan_end.getMeasurement();
-    //     double endDistance = measurementEnd.distance_mm;
-    //     if (measurementEnd != null && measurementEnd.status == laserCan_init.LASERCAN_STATUS_VALID_MEASUREMENT) {
-    //         return endDistance < ScorerConstants.kSensorProxDistanceMM;
-    //     }
-    //     else{
-    //         return false;
-    //     }
-    // }
+    public boolean getProxStateEnd(){
+        LaserCan.Measurement measurementEnd = laserCan_end.getMeasurement();
+        double endDistance = measurementEnd.distance_mm;
+        if (measurementEnd != null && measurementEnd.status == laserCan_init.LASERCAN_STATUS_VALID_MEASUREMENT) {
+            return endDistance < ScorerConstants.kSensorProxDistanceMM;
+        }
+        else{
+            return false;
+        }
+    }
 
     public void stop(){
         scorerRightController.setReference(0, ControlType.kDutyCycle);
         scorerLeftController.setReference(0, ControlType.kDutyCycle);
-
     }
 
     public void setScorerVelocityRPM(double velocity){
@@ -119,26 +120,45 @@ public class ScorerSubsystem extends SubsystemBase{
         return scorerLeftEncoder.getVelocity();
     }
 
-    // public void intake(){
-    //     double kDefaultSpeed = 0.35;
-    //     double kSlowSpeed = 0.2;
-    //     double kBrake = 0.0;
+    private boolean getIntakable(){
+        return intakable;
+    }
 
-    //     if (endProx) {
-    //         scorerRightController.setReference(kBrake, ControlType.kDutyCycle);
-    //         scorerLeftController.setReference(kBrake, ControlType.kDutyCycle);    
-    //     }
+    public void setIntakable(boolean intake){
+        if (intake) {
+            intakable = true;
+        }
+        else{
+            intakable = false;
+        }
+    }
 
-    //     else if (initProx) {
-    //         scorerRightController.setReference(kSlowSpeed, ControlType.kDutyCycle);
-    //         scorerLeftController.setReference(kSlowSpeed, ControlType.kDutyCycle);
-    //     }
+    public void intake(){
+        double kDefaultSpeed = 0.25;
+        double kSlowSpeed = 0.15;
+        double kBrake = 0.0;
 
-    //     else{
-    //         scorerRightController.setReference(kDefaultSpeed, ControlType.kDutyCycle);
-    //         scorerLeftController.setReference(kDefaultSpeed, ControlType.kDutyCycle);
-    //     }
-    // }
+        boolean currentInitProx = getProxStateInit();
+        boolean currentEndProx = getProxStateEnd();
+
+        if (currentEndProx /*&& !prevEndProx*/) {
+            scorerRightController.setReference(kBrake, ControlType.kDutyCycle);
+            scorerLeftController.setReference(kBrake, ControlType.kDutyCycle);    
+        }
+
+        else if (currentInitProx /*&& !prevInitProx */) {
+            scorerRightController.setReference(kSlowSpeed, ControlType.kDutyCycle);
+            scorerLeftController.setReference(kSlowSpeed, ControlType.kDutyCycle);
+        }
+
+        else{
+            scorerRightController.setReference(kDefaultSpeed, ControlType.kDutyCycle);
+            scorerLeftController.setReference(kDefaultSpeed, ControlType.kDutyCycle);
+        }
+
+        prevEndProx = currentEndProx;
+        prevInitProx = currentInitProx;
+    }
 
     public void stopScorer(){
         scorerRightController.setReference(0, ControlType.kDutyCycle);
@@ -167,10 +187,11 @@ public class ScorerSubsystem extends SubsystemBase{
 
     @Override
     public void periodic() {
-        // initProx = getProxStateInit();
-        // endProx = getProxStateEnd();
+        if (getIntakable()) {
+            intake();
+        }
 
-        SmartDashboard.putNumber("left scorer vel", scorerLeftEncoder.getVelocity());
-        SmartDashboard.putNumber("right scorer vel", scorerRightEncoder.getVelocity());
+        SmartDashboard.putNumber("left scorer output", scorerLeftMax.getAppliedOutput());
+        SmartDashboard.putNumber("right scorer vel", scorerRightMax.getAppliedOutput());
     }
 }

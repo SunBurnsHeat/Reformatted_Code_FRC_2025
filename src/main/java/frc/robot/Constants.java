@@ -183,7 +183,7 @@ public final class Constants {
         public static final double kArmPositionDeadband = 01;
         public static final double kArmRollerSpeedDeadband = 100;
 
-        public static final double kArmForwardSoftLimit = 60;
+        public static final double kArmForwardSoftLimit = 90;
         public static final double kArmReverseSoftLimit = 0;
 
         public static final double kFullExtendPosition = 90;

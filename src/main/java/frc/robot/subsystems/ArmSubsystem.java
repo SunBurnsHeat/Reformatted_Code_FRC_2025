@@ -28,7 +28,7 @@ public class ArmSubsystem extends SubsystemBase{
     private final AbsoluteEncoder armMotorEncoder;
     private final RelativeEncoder rollerMotorEncoder;
 
-    private ArmFeedforward armFF;
+    // private ArmFeedforward armFF;
 
     private final SparkClosedLoopController armMotorController;
     private final SparkClosedLoopController rollerMotorController;
@@ -53,7 +53,7 @@ public class ArmSubsystem extends SubsystemBase{
         armMax.configure(Configs.ArmSubsystemConfigs.armMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         rollerMax.configure(Configs.ArmSubsystemConfigs.rollerMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        armFF = new ArmFeedforward(ArmConstants.kS, ArmConstants.kG, ArmConstants.kV);
+        // armFF = new ArmFeedforward(ArmConstants.kS, ArmConstants.kG, ArmConstants.kV);
     }
 
     public void setArmRoller(double rollerSetpoint){ // speed is in RPM

@@ -152,17 +152,17 @@ public final class Configs {
         static{
                 armMaxConfig
                         .idleMode(IdleMode.kBrake)
-                        .inverted(true)
                         .smartCurrentLimit(40)
                         .voltageCompensation(12);
                 armMaxConfig.absoluteEncoder
+                        .inverted(true)
                         .positionConversionFactor(360)
                         .velocityConversionFactor(360 / 60.0);
-                // armMaxConfig.softLimit
-                //         .forwardSoftLimit(ArmConstants.kArmForwardSoftLimit)
-                //         .forwardSoftLimitEnabled(true)
-                //         .reverseSoftLimit(ArmConstants.kArmReverseSoftLimit)
-                //         .reverseSoftLimitEnabled(true);
+                armMaxConfig.softLimit
+                        .forwardSoftLimit(ArmConstants.kArmForwardSoftLimit)
+                        .forwardSoftLimitEnabled(true)
+                        .reverseSoftLimit(ArmConstants.kArmReverseSoftLimit)
+                        .reverseSoftLimitEnabled(true);
                 // armMaxConfig.closedLoop
                 //         .maxMotion.maxVelocity(2.5)
                 //         .maxAcceleration(1.25);
@@ -183,7 +183,7 @@ public final class Configs {
                 rollerMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                         .pid(0.00115, 0, 0)
-                        .outputRange(-1, 1);
+                        .outputRange(-.6, .6);
                 }
         }
 
@@ -204,7 +204,8 @@ public final class Configs {
                 //         .reverseSoftLimitEnabled(true);
                 winchMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
-                        .pid(0.05, 0, 0.002)
+                        .pid(0.05, 2e-5, 0.0)
+                        .iZone(0.1)
                         .outputRange(-1, 1);
 
                 trapMaxConfig
