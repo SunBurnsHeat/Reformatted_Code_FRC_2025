@@ -195,9 +195,9 @@ public final class Constants {
         public static final int kScorerRightMotorCANID = 16;
         public static final int kScorerLeftMotorCANID = 15;
 
-        public static final double kSensorProxDistanceMM = 12;
-        public static final int kInitLaserCANID = 17;
-        public static final int kEndLaserCANID = 18;
+        public static final double kSensorProxDistanceMM = 6;
+        public static final int kInitLaserCANID = 21;
+        public static final int kEndLaserCANID = 22;
 
         public static final double kIntakeDuty = 0.6;
 
@@ -216,6 +216,7 @@ public final class Constants {
         public static final double kIdleSpeed = 0.25;
         public static final double kWinchSpeed = -0.9;
 
-        public static final double trapOpenSpeed = - 0.4;
+        public static final double trapOpenSpeed = - 0.3;
+        public static final double trapCloseSpeed = 0.15;
     }
 }

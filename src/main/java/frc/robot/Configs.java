@@ -117,7 +117,7 @@ public final class Configs {
 
         static{
                 scorerRightMaxConfig
-                        .idleMode(IdleMode.kBrake)
+                        .idleMode(IdleMode.kCoast)
                         .inverted(true)
                         .smartCurrentLimit(30)
                         .voltageCompensation(12);
@@ -127,10 +127,10 @@ public final class Configs {
                 scorerRightMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                         .pid(0.00125, 0, 0)
-                        .outputRange(-1, 1);
+                        .outputRange(-.5, .5);
 
                 scorerLeftMaxConfig
-                        .idleMode(IdleMode.kBrake)
+                        .idleMode(IdleMode.kCoast)
                         .inverted(false)
                         .smartCurrentLimit(30)
                         .voltageCompensation(12);
@@ -140,7 +140,7 @@ public final class Configs {
                 scorerLeftMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                         .pid(0.00115, 0, 0)
-                        .outputRange(-1, 1);
+                        .outputRange(-.5, .5);
                 }
         }
 
@@ -197,11 +197,11 @@ public final class Configs {
                         .idleMode(IdleMode.kBrake)
                         .smartCurrentLimit(40)
                         .voltageCompensation(12);
-                // winchMaxConfig.softLimit
-                //         .forwardSoftLimit(0)
-                //         .forwardSoftLimitEnabled(true)
-                //         .reverseSoftLimit(WinchConstants.kTopPosition)
-                //         .reverseSoftLimitEnabled(true);
+                winchMaxConfig.softLimit
+                        .forwardSoftLimit(0)
+                        .forwardSoftLimitEnabled(true)
+                        .reverseSoftLimit(WinchConstants.kTopPosition)
+                        .reverseSoftLimitEnabled(true);
                 winchMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
                         .pid(0.05, 2e-5, 0.0)
@@ -214,7 +214,7 @@ public final class Configs {
                         .voltageCompensation(12);
                 trapMaxConfig.limitSwitch
                         .reverseLimitSwitchEnabled(true)
-                        .reverseLimitSwitchType(Type.kNormallyClosed);
+                        .reverseLimitSwitchType(Type.kNormallyOpen);
                 }
         }
 }

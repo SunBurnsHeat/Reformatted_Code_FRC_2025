@@ -4,17 +4,6 @@
 
 package frc.robot;
 
-import frc.robot.Constants.AutoConstants;
-import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.ElevatorConstants;
-import frc.robot.Constants.OIConstants;
-import frc.robot.commands.DefaultDriveCommand;
-import frc.robot.subsystems.ArmSubsystem;
-import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ElevatorSubsystem;
-import frc.robot.subsystems.ScorerSubsystem;
-import frc.robot.subsystems.WinchSubsystem;
-
 import java.util.List;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -38,6 +27,19 @@ import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.ElevatorConstants;
+import frc.robot.Constants.OIConstants;
+import frc.robot.commands.CoralIntakeCommand;
+import frc.robot.commands.DefaultDriveCommand;
+import frc.robot.commands.LedCycleCommand;
+import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.LedSubsystem;
+import frc.robot.subsystems.ScorerSubsystem;
+import frc.robot.subsystems.WinchSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -51,6 +53,7 @@ public class RobotContainer {
   private final ElevatorSubsystem elevator = new ElevatorSubsystem();
   private final WinchSubsystem winch = new WinchSubsystem();
   private final ScorerSubsystem scorer = new ScorerSubsystem();
+  private final LedSubsystem led = new LedSubsystem(elevator, scorer);
   private final ArmSubsystem arm = new ArmSubsystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -71,20 +74,24 @@ public class RobotContainer {
   private void configureBindings() {
     // elevator.setDefaultCommand(new DefaultElevatorCommand(elevator));
     robotDrive.setDefaultCommand(new DefaultDriveCommand(robotDrive));
+    led.setDefaultCommand(new LedCycleCommand(led, scorer));
 
     driverControllerCommand.x().whileTrue(new RunCommand(() -> robotDrive.setX()));
     driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
 
-    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> arm.setArmPosition(200), arm));
+    driverControllerCommand.a().whileTrue(new InstantCommand(() -> winch.openTrap()));
+    driverControllerCommand.b().whileTrue(new InstantCommand(() -> winch.closeTrap()));
+
+    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> arm.setArmPosition(90), arm));
     coPilotControllerCommand.b().whileTrue(new StartEndCommand(() -> arm.setArmRoller(0.3), () -> arm.setArmRoller(0)));
     coPilotControllerCommand.x().whileTrue(new StartEndCommand(() -> arm.setArmRoller(-0.25), () -> arm.setArmRoller(0)));
-    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> arm.setArmPosition(110), arm));
+    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> arm.setArmPosition(0), arm));
 
     new JoystickButton(copilotController, Button.kLeftBumper.value).whileTrue(new StartEndCommand(() -> scorer.ejectBottomLeft(), 
       () -> scorer.stopScorer()));
     new JoystickButton(copilotController, Button.kRightBumper.value).whileTrue(new StartEndCommand(() -> scorer.ejectBottomRight(), 
       () -> scorer.stopScorer()));
-    // new Trigger(this::leftTrigger).whileTrue(new RunCommand(() -> scorer.intake(), scorer));
+    new Trigger(this::leftTrigger).whileTrue(new CoralIntakeCommand(scorer));
     new Trigger(this::rightTrigger).whileTrue(new StartEndCommand(() -> scorer.ejectElevated(), () -> scorer.stopScorer()));
 
     coPilotControllerCommand.povUp().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3), elevator));
@@ -197,7 +204,7 @@ public class RobotContainer {
     return thetaController;
   }
 
-  private Command swerveCommand(Trajectory traj){
+  private Command swerveCommand(Trajectory traj, boolean brake){
     SwerveControllerCommand command = new SwerveControllerCommand(
       traj,
       robotDrive::getP, 
@@ -207,25 +214,46 @@ public class RobotContainer {
       getThetaController(),
       robotDrive::setModuleStates,
       robotDrive);
-    return command.andThen(() -> robotDrive.drive(0, 0, 0, true, true));
+    if (brake) {
+      return command.andThen(() -> robotDrive.drive(0, 0, 0, true, true));
+    }
+    else{
+      return command;
+    }
   }
 
-  private Command moveForwardCommand(){
+  private Command moveForwardCommand(boolean reset){
       Trajectory moveForwardTraj = TrajectoryGenerator.generateTrajectory(
-          new Pose2d(new Translation2d(7.1927, 4.195), Rotation2d.fromDegrees(180)),
+          new Pose2d(new Translation2d(6.7631, 4.195), Rotation2d.fromDegrees(180)),
           List.of(),
-          new Pose2d(new Translation2d(5.7133, 4.195), Rotation2d.fromDegrees(180)),
+          new Pose2d(new Translation2d(6.2185, 4.195), Rotation2d.fromDegrees(180)),
           AutoConstants.kTrajConfigSlow);
-      SwerveControllerCommand moveToReefCommand = new SwerveControllerCommand(
-          moveForwardTraj,
-          robotDrive::getP, 
-          DriveConstants.kDriveKinematics, 
-          new PIDController(1, 0, 0), 
-          new PIDController(1, 0, 0),
-          getThetaController(),
-          robotDrive::setModuleStates,
-          robotDrive);
-      return moveToReefCommand.andThen(() -> robotDrive.drive(0, 0, 0, false, false));
+        if (reset) {
+          robotDrive.resetOdometry(moveForwardTraj.getInitialPose());
+        }
+      return swerveCommand(moveForwardTraj, true);
+  }
+
+  private Command centerReef_Algae1(){
+    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(6.2185, 4.195), Rotation2d.fromDegrees(180)),
+      List.of(),
+      new Pose2d(new Translation2d(6.2229, 4.023), Rotation2d.fromDegrees(180)), 
+      AutoConstants.kTrajConfigSlow);
+
+      return swerveCommand(cenTrajectory, false);
+  }
+
+  private Command centereReef_Algae2(){
+    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+      List.of(
+        new Pose2d(new Translation2d(6.2229, 4.023), Rotation2d.fromDegrees(180)),
+        new Pose2d(new Translation2d(6.3422, 2.707), Rotation2d.fromDegrees(155)),
+        new Pose2d(new Translation2d(6.1773, 2.3361), Rotation2d.fromDegrees(140)),
+        new Pose2d(new Translation2d(5.394, 2.501), Rotation2d.fromDegrees(120))),
+      AutoConstants.kTrajConfigStandard);
+
+      return swerveCommand(cenTrajectory, false);
   }
 
   private Command moveToCoralStationCommand_1(){

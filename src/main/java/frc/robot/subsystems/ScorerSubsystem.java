@@ -25,15 +25,12 @@ public class ScorerSubsystem extends SubsystemBase{
 
     private final SparkClosedLoopController scorerRightController;
     private final SparkClosedLoopController scorerLeftController;
-    private double targetSetPoint = 0.0;
 
     private LaserCan laserCan_init;
     private LaserCan laserCan_end;
 
-    public boolean intakable = false;
-
-    private boolean prevEndProx = false;
-    private boolean prevInitProx = false;
+    public boolean initProx;
+    public boolean endProx;
 
 
     public ScorerSubsystem(){
@@ -50,7 +47,7 @@ public class ScorerSubsystem extends SubsystemBase{
         laserCan_init = new LaserCan(ScorerConstants.kInitLaserCANID);
         try {
             laserCan_init.setRangingMode(LaserCan.RangingMode.SHORT);
-            laserCan_init.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
+            laserCan_init.setRegionOfInterest(new LaserCan.RegionOfInterest(4, 4, 8, 8));
             laserCan_init.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
         } catch (ConfigurationFailedException e) {
             System.out.println("Configuration failed! " + e);
@@ -58,7 +55,7 @@ public class ScorerSubsystem extends SubsystemBase{
         laserCan_end = new LaserCan(ScorerConstants.kEndLaserCANID);
         try {
             laserCan_end.setRangingMode(LaserCan.RangingMode.SHORT);
-            laserCan_end.setRegionOfInterest(new LaserCan.RegionOfInterest(8, 8, 16, 16));
+            laserCan_end.setRegionOfInterest(new LaserCan.RegionOfInterest(4, 4, 8, 8));
             laserCan_end.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
         } catch (ConfigurationFailedException e) {
             System.out.println("Configuration failed! " + e);
@@ -68,15 +65,12 @@ public class ScorerSubsystem extends SubsystemBase{
         scorerLeftMax.configure(Configs.ScorerSubsystemConfigs.scorerLeftMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
     
-    // public void setScorerMaxLeft(double setPoint){
-    //     scorerLeftMax.set(setPoint);
-
-    //     targetSetPoint = setPoint;
-    // }
-    // public void setScorerMaxRight(double setPoint){
-    //     scorerRightMax.set(setPoint);
-    //     targetSetPoint = setPoint;
-    // }
+    public void setScorerMaxLeft(double setPoint){
+        scorerLeftController.setReference(setPoint, ControlType.kDutyCycle);
+    }
+    public void setScorerMaxRight(double setPoint){
+        scorerRightController.setReference(setPoint, ControlType.kDutyCycle);
+    }
 
     public boolean getProxStateInit(){
         LaserCan.Measurement measurementInit = laserCan_init.getMeasurement();
@@ -108,57 +102,48 @@ public class ScorerSubsystem extends SubsystemBase{
     public void setScorerVelocityRPM(double velocity){
         scorerRightController.setReference(velocity, ControlType.kVelocity);
         scorerLeftController.setReference(velocity, ControlType.kVelocity);
-
-        targetSetPoint = velocity;
     }
 
     public double getScorerRightVelocityRPM(){
         return scorerRightEncoder.getVelocity();
     }
 
+    public boolean hasCoral(){
+        return (!initProx && endProx);
+    }
+
+    public boolean ongoingCoral(){
+        return (initProx && !endProx);
+    }
+
     public double getScorerLeftVelocityRPM(){
         return scorerLeftEncoder.getVelocity();
     }
 
-    private boolean getIntakable(){
-        return intakable;
-    }
+    // public void intake(){
+        
+    //     double kDefaultSpeed = 0.20;
+    //     double kSlowSpeed = 0.12;
+    //     double kBrake = 0.0;
 
-    public void setIntakable(boolean intake){
-        if (intake) {
-            intakable = true;
-        }
-        else{
-            intakable = false;
-        }
-    }
+    //     boolean currentInitProx = getProxStateInit();
+    //     boolean currentEndProx = getProxStateEnd();
+    //         if (!getProxStateInit() && getProxStateEnd()) {
+    //             scorerRightController.setReference(0, ControlType.kDutyCycle);
+    //             scorerLeftController.setReference(0, ControlType.kDutyCycle);
+                
+    //             if (getProxStateInit() && !getProxStateEnd()) {
+    //                 scorerRightController.setReference(.3, ControlType.kDutyCycle);
+    //                 scorerLeftController.setReference(.3, ControlType.kDutyCycle);
 
-    public void intake(){
-        double kDefaultSpeed = 0.25;
-        double kSlowSpeed = 0.15;
-        double kBrake = 0.0;
+    //                 if((!getProxStateInit() && !getProxStateEnd()) || (getProxStateInit() && getProxStateEnd())){
+    //                     scorerRightController.setReference(.3, ControlType.kDutyCycle);
+    //                     scorerLeftController.setReference(.3, ControlType.kDutyCycle);
+    //                 }
 
-        boolean currentInitProx = getProxStateInit();
-        boolean currentEndProx = getProxStateEnd();
-
-        if (currentEndProx /*&& !prevEndProx*/) {
-            scorerRightController.setReference(kBrake, ControlType.kDutyCycle);
-            scorerLeftController.setReference(kBrake, ControlType.kDutyCycle);    
-        }
-
-        else if (currentInitProx /*&& !prevInitProx */) {
-            scorerRightController.setReference(kSlowSpeed, ControlType.kDutyCycle);
-            scorerLeftController.setReference(kSlowSpeed, ControlType.kDutyCycle);
-        }
-
-        else{
-            scorerRightController.setReference(kDefaultSpeed, ControlType.kDutyCycle);
-            scorerLeftController.setReference(kDefaultSpeed, ControlType.kDutyCycle);
-        }
-
-        prevEndProx = currentEndProx;
-        prevInitProx = currentInitProx;
-    }
+    //             }
+    //         }
+    // }
 
     public void stopScorer(){
         scorerRightController.setReference(0, ControlType.kDutyCycle);
@@ -181,17 +166,35 @@ public class ScorerSubsystem extends SubsystemBase{
 
     }
 
-    public boolean atSpeed() {
-        return Math.abs(getScorerRightVelocityRPM() - targetSetPoint) < ScorerConstants.kScorerSpeedDeadbandRPM;
-    }
-
     @Override
     public void periodic() {
-        if (getIntakable()) {
-            intake();
-        }
+
+        initProx = getProxStateInit();
+        endProx = getProxStateEnd();
+
+        // if (getIntakable()) {
+
+        //     // if (getProxStateEnd()) {
+        //         scorerRightController.setReference(0.1, ControlType.kDutyCycle);
+        //         scorerLeftController.setReference(0.1, ControlType.kDutyCycle);
+        //     // }
+
+        //     // else{
+        //     //     scorerRightController.setReference(0.2, ControlType.kDutyCycle);
+        //     //     scorerLeftController.setReference(0.2, ControlType.kDutyCycle);
+
+        //     // }
+        // }
+
+        // else{
+        //     // scorerRightController.setReference(0, ControlType.kDutyCycle);
+        //     // scorerLeftController.setReference(0, ControlType.kDutyCycle);
+        // }
 
         SmartDashboard.putNumber("left scorer output", scorerLeftMax.getAppliedOutput());
         SmartDashboard.putNumber("right scorer vel", scorerRightMax.getAppliedOutput());
+        SmartDashboard.putBoolean("init Prox State", initProx);
+        SmartDashboard.putBoolean("end Prox State", endProx);
+
     }
 }
