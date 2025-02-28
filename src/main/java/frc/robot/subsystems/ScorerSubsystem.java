@@ -192,7 +192,7 @@ public class ScorerSubsystem extends SubsystemBase{
         // }
 
         SmartDashboard.putNumber("left scorer output", scorerLeftMax.getAppliedOutput());
-        SmartDashboard.putNumber("right scorer vel", scorerRightMax.getAppliedOutput());
+        SmartDashboard.putNumber("right scorer output", scorerRightMax.getAppliedOutput());
         SmartDashboard.putBoolean("init Prox State", initProx);
         SmartDashboard.putBoolean("end Prox State", endProx);
 

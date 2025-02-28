@@ -87,7 +87,7 @@ public final class Configs {
                         .velocityFF(0.0)
                         .outputRange(-0.2, 0.2);
                 leadElevatorMaxConfig.softLimit
-                        .forwardSoftLimit(45)
+                        .forwardSoftLimit(47)
                         .forwardSoftLimitEnabled(true)
                         .reverseSoftLimit(0)
                         .reverseSoftLimitEnabled(true);
@@ -117,7 +117,7 @@ public final class Configs {
 
         static{
                 scorerRightMaxConfig
-                        .idleMode(IdleMode.kCoast)
+                        .idleMode(IdleMode.kBrake)
                         .inverted(true)
                         .smartCurrentLimit(30)
                         .voltageCompensation(12);
@@ -130,7 +130,7 @@ public final class Configs {
                         .outputRange(-.5, .5);
 
                 scorerLeftMaxConfig
-                        .idleMode(IdleMode.kCoast)
+                        .idleMode(IdleMode.kBrake)
                         .inverted(false)
                         .smartCurrentLimit(30)
                         .voltageCompensation(12);

@@ -31,13 +31,13 @@ public class CoralIntakeCommand extends Command {
             scorer.setScorerMaxLeft(0);
             scorer.setScorerMaxRight(0);    
         }
-        else if ((!scorer.endProx) && (scorer.initProx)) {
-            scorer.setScorerMaxLeft(0.1);
-            scorer.setScorerMaxRight(0.1);    
-        }
+        // else if ((!scorer.endProx) && (scorer.initProx)) {
+        //     scorer.setScorerMaxLeft(0.12);
+        //     scorer.setScorerMaxRight(0.12);    
+        // }
         else{
-            scorer.setScorerMaxLeft(0.3);
-            scorer.setScorerMaxRight(0.3);    
+            scorer.setScorerMaxLeft(0.25);
+            scorer.setScorerMaxRight(0.25);    
         }
     }
 
@@ -58,6 +58,7 @@ public class CoralIntakeCommand extends Command {
      */
     @Override
     public boolean isFinished() {
-        return ((scorer.endProx) && (!scorer.initProx)); // Change this condition based on when you want the command to end
+        // return ((scorer.endProx) && (!scorer.initProx)); // Change this condition based on when you want the command to end
+        return ((scorer.endProx) && !(scorer.initProx));
     }
 }

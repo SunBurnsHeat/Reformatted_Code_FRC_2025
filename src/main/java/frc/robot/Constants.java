@@ -165,7 +165,7 @@ public final class Constants {
         public static final double kElevatorPosition_L0 = 0;
         public static final double kElevatorPosition_L1 = 12;
         public static final double kElevatorPosition_L2 = 20;
-        public static final double kElevatorPosition_L3 = 45;
+        public static final double kElevatorPosition_L3 = 46.5;
     }
 
     public static final class ArmConstants{

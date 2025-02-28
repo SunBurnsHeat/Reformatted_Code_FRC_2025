@@ -76,16 +76,19 @@ public class RobotContainer {
     robotDrive.setDefaultCommand(new DefaultDriveCommand(robotDrive));
     led.setDefaultCommand(new LedCycleCommand(led, scorer));
 
-    driverControllerCommand.x().whileTrue(new RunCommand(() -> robotDrive.setX()));
+    driverControllerCommand.a().whileTrue(new RunCommand(() -> robotDrive.setX()));
     driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
 
-    driverControllerCommand.a().whileTrue(new InstantCommand(() -> winch.openTrap()));
-    driverControllerCommand.b().whileTrue(new InstantCommand(() -> winch.closeTrap()));
+    driverControllerCommand.leftBumper().whileTrue(new StartEndCommand(() -> winch.openTrap(), () -> winch.stopTrap()));
+    driverControllerCommand.rightBumper().whileTrue(new StartEndCommand(() -> winch.closeTrap(), () -> winch.stopTrap()));
 
-    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> arm.setArmPosition(90), arm));
+    // driverControllerCommand.a().whileTrue(new InstantCommand(() -> winch.openTrap()));
+    // driverControllerCommand.b().whileTrue(new InstantCommand(() -> winch.closeTrap()));
+
+    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> arm.setArmPosition(90), arm));
     coPilotControllerCommand.b().whileTrue(new StartEndCommand(() -> arm.setArmRoller(0.3), () -> arm.setArmRoller(0)));
     coPilotControllerCommand.x().whileTrue(new StartEndCommand(() -> arm.setArmRoller(-0.25), () -> arm.setArmRoller(0)));
-    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> arm.setArmPosition(0), arm));
+    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> arm.setArmPosition(0), arm));
 
     new JoystickButton(copilotController, Button.kLeftBumper.value).whileTrue(new StartEndCommand(() -> scorer.ejectBottomLeft(), 
       () -> scorer.stopScorer()));

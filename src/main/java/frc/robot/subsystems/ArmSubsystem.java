@@ -33,7 +33,7 @@ public class ArmSubsystem extends SubsystemBase{
     private final SparkClosedLoopController armMotorController;
     private final SparkClosedLoopController rollerMotorController;
 
-    private double targetPosition = 200.0;
+    private double targetPosition = 0.0;
     private double targetSetpoint = 0.0;
 
     // private final XboxController controller = new XboxController(OIConstants.kCoPilotControllerPort);
@@ -103,7 +103,7 @@ public class ArmSubsystem extends SubsystemBase{
         // double FF = armFF.calculate(Units.degreesToRadians(targetPosition), velocity);    
         
         // if (!atPosition()) {
-            armMotorController.setReference(targetPosition, ControlType.kPosition/* , ClosedLoopSlot.kSlot0 , FF*/);
+            // armMotorController.setReference(targetPosition, ControlType.kPosition/* , ClosedLoopSlot.kSlot0 , FF*/);
         // }
         // else{
         //     armMotorController.setReference(0, ControlType.kDutyCycle);

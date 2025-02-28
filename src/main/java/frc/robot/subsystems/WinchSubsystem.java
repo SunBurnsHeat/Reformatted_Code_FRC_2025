@@ -61,4 +61,8 @@ public class WinchSubsystem extends SubsystemBase{
     public void closeTrap(){
         trapMax.set(WinchConstants.trapCloseSpeed);
     }
+
+    public void stopTrap(){
+        trapMax.set(0);
+    }
 }
