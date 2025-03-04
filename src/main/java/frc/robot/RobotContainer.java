@@ -21,9 +21,13 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -53,7 +57,6 @@ public class RobotContainer {
   private final ElevatorSubsystem elevator = new ElevatorSubsystem();
   private final WinchSubsystem winch = new WinchSubsystem();
   private final ScorerSubsystem scorer = new ScorerSubsystem();
-  private final LedSubsystem led = new LedSubsystem(elevator, scorer);
   private final ArmSubsystem arm = new ArmSubsystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -74,7 +77,7 @@ public class RobotContainer {
   private void configureBindings() {
     // elevator.setDefaultCommand(new DefaultElevatorCommand(elevator));
     robotDrive.setDefaultCommand(new DefaultDriveCommand(robotDrive));
-    led.setDefaultCommand(new LedCycleCommand(led, scorer));
+    // led.setDefaultCommand(new LedCycleCommand(led, scorer));
 
     driverControllerCommand.a().whileTrue(new RunCommand(() -> robotDrive.setX()));
     driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
@@ -85,23 +88,30 @@ public class RobotContainer {
     // driverControllerCommand.a().whileTrue(new InstantCommand(() -> winch.openTrap()));
     // driverControllerCommand.b().whileTrue(new InstantCommand(() -> winch.closeTrap()));
 
-    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> arm.setArmPosition(90), arm));
-    coPilotControllerCommand.b().whileTrue(new StartEndCommand(() -> arm.setArmRoller(0.3), () -> arm.setArmRoller(0)));
-    coPilotControllerCommand.x().whileTrue(new StartEndCommand(() -> arm.setArmRoller(-0.25), () -> arm.setArmRoller(0)));
-    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> arm.setArmPosition(0), arm));
+    coPilotControllerCommand.y().whileTrue(new InstantCommand(() -> elevator.incremPos(), elevator));
+    coPilotControllerCommand.b().onTrue(new InstantCommand(() -> arm.incremPos(), arm));
+    coPilotControllerCommand.x().onTrue(new InstantCommand(() -> arm.decremPos(), arm));
+    coPilotControllerCommand.a().whileTrue(new InstantCommand(() -> elevator.decremPos(), elevator));
 
     new JoystickButton(copilotController, Button.kLeftBumper.value).whileTrue(new StartEndCommand(() -> scorer.ejectBottomLeft(), 
       () -> scorer.stopScorer()));
     new JoystickButton(copilotController, Button.kRightBumper.value).whileTrue(new StartEndCommand(() -> scorer.ejectBottomRight(), 
       () -> scorer.stopScorer()));
+
     new Trigger(this::leftTrigger).whileTrue(new CoralIntakeCommand(scorer));
     new Trigger(this::rightTrigger).whileTrue(new StartEndCommand(() -> scorer.ejectElevated(), () -> scorer.stopScorer()));
+
+    new Trigger(this::R1Left).whileTrue(new StartEndCommand(() -> arm.setArmRoller(-0.40), () -> arm.setArmRoller(0)));
+    new Trigger(this::R1Right).whileTrue(new StartEndCommand(() -> arm.setArmRoller(0.3), () -> arm.setArmRoller(0)));
+
+    new Trigger(this::R1Up).whileTrue(new InstantCommand(() -> arm.setArmPosition(85), arm));
+    new Trigger(this::R1Down).whileTrue(new InstantCommand(() -> arm.setArmPosition(15), arm));
+
 
     coPilotControllerCommand.povUp().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3), elevator));
     coPilotControllerCommand.povDown().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L0), elevator));
     coPilotControllerCommand.povRight().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L1), elevator));
     coPilotControllerCommand.povLeft().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L2), elevator));
-
   }
 
   private boolean leftTrigger() {
@@ -116,6 +126,12 @@ public class RobotContainer {
   private boolean R1Up() {
     return copilotController.getRawAxis(5) < -0.75;
   }
+  private boolean R1Left(){
+    return copilotController.getRawAxis(4) < -0.75;
+  }
+  private boolean R1Right(){
+    return copilotController.getRawAxis(4) > 0.75;
+  }
   private boolean L1Down() {
     return copilotController.getRawAxis(1) > 0.75;
   }
@@ -124,67 +140,107 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
+
+    return moveForwardCommand(false);
     
-    // Create config for trajectory
-    TrajectoryConfig config = new TrajectoryConfig(
-        AutoConstants.kMaxSpeedMetersPerSecondStandard,
-        AutoConstants.kMaxAccelerationMetersPerSecondSquaredStandard)
-        // Add kinematics to ensure max speed is actually obeyed
-        .setKinematics(DriveConstants.kDriveKinematics);
+    // // Create config for trajectory
+    // TrajectoryConfig config = new TrajectoryConfig(
+    //     AutoConstants.kMaxSpeedMetersPerSecondStandard,
+    //     AutoConstants.kMaxAccelerationMetersPerSecondSquaredStandard)
+    //     // Add kinematics to ensure max speed is actually obeyed
+    //     .setKinematics(DriveConstants.kDriveKinematics);
 
-    // An example trajectory to follow. All units in meters.
-    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-        // Start at the origin facing the +X direction
-        new Pose2d(0, 0, new Rotation2d(0)),
-        // Pass through these two interior waypoints, making an 's' curve path
-        List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-        // End 3 meters straight ahead of where we started, facing forward
-        new Pose2d(3, 0, new Rotation2d(0)),
-        config);
+    // // An example trajectory to follow. All units in meters.
+    // Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
+    //     // Start at the origin facing the +X direction
+    //     new Pose2d(0, 0, new Rotation2d(0)),
+    //     // Pass through these two interior waypoints, making an 's' curve path
+    //     List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
+    //     // End 3 meters straight ahead of where we started, facing forward
+    //     new Pose2d(3, 0, new Rotation2d(0)),
+    //     config);
 
-    var thetaController = new ProfiledPIDController(
-        AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+    // var thetaController = new ProfiledPIDController(
+    //     AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
+    // thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        exampleTrajectory,
-        robotDrive::getP, // Functional interface to feed supplier
-        DriveConstants.kDriveKinematics,
+    // SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+    //     exampleTrajectory,
+    //     robotDrive::getP, // Functional interface to feed supplier
+    //     DriveConstants.kDriveKinematics,
 
-        // Position controllers
-        new PIDController(AutoConstants.kPXController, 0, 0),
-        new PIDController(AutoConstants.kPYController, 0, 0),
-        thetaController,
-        robotDrive::setModuleStates,
-        robotDrive);
+    //     // Position controllers
+    //     new PIDController(AutoConstants.kPXController, 0, 0),
+    //     new PIDController(AutoConstants.kPYController, 0, 0),
+    //     thetaController,
+    //     robotDrive::setModuleStates,
+    //     robotDrive);
 
-    // Reset odometry to the starting pose of the trajectory.
-    robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
+    // // Reset odometry to the starting pose of the trajectory.
+    // robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
 
-    // Run path following command, then stop at the end.
-    return swerveControllerCommand.andThen(() -> robotDrive.drive(0, 0, 0, false,false));
+    // // Run path following command, then stop at the end.
+    // return swerveControllerCommand.andThen(() -> robotDrive.drive(0, 0, 0, false,false));
   }
 
   public void setSmartDashboard(){
     SendableChooser<AutoType> autoType = new SendableChooser<AutoType>();
+    SendableChooser<AutoPos> autoPos = new SendableChooser<AutoPos>();
+    SendableChooser<AutoAngle> autoAngle = new SendableChooser<AutoAngle>();
+
     autoType.addOption("One Piece", AutoType.One_Piece);
-    autoType.addOption("Two Piece", AutoType.Two_Piece_Right);
-    autoType.addOption("Two Piece", AutoType.Two_Piece_Left);
-    autoType.addOption("Three Piece Right", AutoType.Three_Piece_Right);
-    autoType.addOption("Four Piece Left", AutoType.Four_Piece_Left);
-    autoType.addOption("Four Piece Right", AutoType.Four_Piece_Right);
-    autoType.setDefaultOption("Three Piece Left", AutoType.Three_Piece_Left);
+    autoType.addOption("Two Piece", AutoType.Two_Piece);
+    autoType.addOption("Three Piece", AutoType.Three_Piece);
+    autoType.addOption("Four Piece", AutoType.Four_Piece);
+    autoType.setDefaultOption("Four Piece", AutoType.Three_Piece);
     SmartDashboard.putData("Auto Type", autoType);
+
+    autoPos.addOption("Left", AutoPos.Left);
+    autoPos.addOption("Center", AutoPos.Center);
+    autoPos.addOption("Right", AutoPos.Right);
+    autoPos.setDefaultOption("Left", AutoPos.Left);
+    SmartDashboard.putData("Auto Pos", autoPos);
+
+    autoAngle.addOption("Left", AutoAngle.Left);
+    autoAngle.addOption("Right", AutoAngle.Right);
+    autoAngle.setDefaultOption("Right", AutoAngle.Right);
+    SmartDashboard.putData("Auto Angle", autoAngle);
+  }
+
+  private Command center_Zero_Algae(){
+    return new ParallelCommandGroup(moveForwardCommand(true), 
+    new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3)))
+    .andThen(new WaitUntilCommand(elevator::atHeight))
+    .andThen(new RunCommand(() -> scorer.ejectElevated(), scorer))
+    .andThen(new ParallelRaceGroup(new WaitUntilCommand(() -> !scorer.hasCoral()), new WaitCommand(0.35)));
+  }
+
+  private Command left_Three_Coral(){
+    return leftReef_Coral1()
+    .andThen(new ParallelCommandGroup(new InstantCommand(
+      () -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3)), leftReef_Coral2()))
+    .andThen(new WaitUntilCommand(elevator::atHeight))
+    .andThen(() -> new RunCommand(() -> scorer.ejectElevated(), scorer))
+    .andThen(new ParallelRaceGroup(new WaitUntilCommand(() -> !scorer.hasCoral()), new WaitCommand(0.35)))
+    .andThen(new ParallelCommandGroup(leftReef_Coral3(), 
+      new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L0))))
+    .andThen(new ParallelCommandGroup(leftReef_Coral4(), new CoralIntakeCommand(scorer)))
+    .andThen(new ParallelRaceGroup(new WaitUntilCommand(scorer::holdongCoral), new WaitCommand(1.5)))
+    .andThen(leftReef_Coral5())
+    .andThen(new ParallelCommandGroup(leftReef_Coral6(),
+     new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3))))
+    .andThen(() -> new RunCommand(() -> scorer.ejectElevated(), scorer));
+  }
+
+  public enum AutoPos{
+    Left, Center, Right
   }
 
   public enum AutoType {
     One_Piece,
-    Two_Piece_Left,
-    Two_Piece_Right,
-    Three_Piece_Left,
-    Three_Piece_Right,
-    Four_Piece_Left,
-    Four_Piece_Right
+    Two_Piece,
+    Three_Piece,
+    Four_Piece
   }
 
   public enum AutoPiece {
@@ -196,6 +252,8 @@ public class RobotContainer {
       Right,
       Left
   }
+
+  
 
   public void setFieldRelativeOffset(double offset) {
     robotDrive.setFieldRelativeOffset(offset);
@@ -249,183 +307,127 @@ public class RobotContainer {
 
   private Command centereReef_Algae2(){
     Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(6.2229, 4.023), Rotation2d.fromDegrees(180)),
       List.of(
-        new Pose2d(new Translation2d(6.2229, 4.023), Rotation2d.fromDegrees(180)),
-        new Pose2d(new Translation2d(6.3422, 2.707), Rotation2d.fromDegrees(155)),
-        new Pose2d(new Translation2d(6.1773, 2.3361), Rotation2d.fromDegrees(140)),
-        new Pose2d(new Translation2d(5.394, 2.501), Rotation2d.fromDegrees(120))),
+        /*new Pose2d(*/new Translation2d(6.3422, 2.707), /*new Rotation2d.fromDegrees(155)),*/
+        /*new Pose2d(*/new Translation2d(6.1773, 2.3361)/* , new Rotation2d.fromDegrees(140))*/
+        ),
+        new Pose2d(new Translation2d(5.394, 2.501), Rotation2d.fromDegrees(120)),
       AutoConstants.kTrajConfigStandard);
 
       return swerveCommand(cenTrajectory, false);
   }
 
-  private Command moveToCoralStationCommand_1(){
-    Trajectory moveToCoralStationTraj = TrajectoryGenerator.generateTrajectory(
+  private Command centerReef_Algae3(){
+    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(5.394, 2.501), Rotation2d.fromDegrees(120)),
       List.of(
-        new Pose2d(new Translation2d(5.7133, 4.195), Rotation2d.fromDegrees(180)),
-        new Pose2d(new Translation2d(5.7133, 4.795), Rotation2d.fromDegrees(200)),
-        new Pose2d(new Translation2d(2.265, 6.205), Rotation2d.fromDegrees(300)),
-        new Pose2d(new Translation2d(1.165, 7.092), Rotation2d.fromDegrees(315))),
+      new Translation2d(6.28, 3.314),
+      new Translation2d(6.7631, 4.195),
+      new Translation2d(6.218, 4.623)
+      ),
+      new Pose2d(new Translation2d(5.312, 5.448), Rotation2d.fromDegrees(250)),
       AutoConstants.kTrajConfigStandard);
-    SwerveControllerCommand moveToCoralStationCommand = new SwerveControllerCommand(
-          moveToCoralStationTraj,
-          robotDrive::getP, 
-          DriveConstants.kDriveKinematics, 
-          new PIDController(1, 0, 0), 
-          new PIDController(1, 0, 0),
-          getThetaController(),
-          robotDrive::setModuleStates,
-          robotDrive);
-      return moveToCoralStationCommand.andThen(() -> robotDrive.drive(0, 0, 0, false, false));
+
+      return swerveCommand(cenTrajectory, false);
   }
 
-  private Command rushTowardsReefCommand_1(){
-    Trajectory rushTowardsReefTraj = TrajectoryGenerator.generateTrajectory(
+  private Command leftReef_Coral1(){ // rush
+    Trajectory traj = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(7.593, 6.753), Rotation2d.fromDegrees(225)),
       List.of(
-        new Pose2d(new Translation2d(1.165, 7.092), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(2.025, 6.235), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(3.405, 5.375), Rotation2d.fromDegrees(315))),
+      new Translation2d(6.202, 5.501)),
+      new Pose2d(new Translation2d(5.689, 5.362), Rotation2d.fromDegrees(250)),
       AutoConstants.kTrajConfigFast);
-    SwerveControllerCommand rushTowardsReefCommand = new SwerveControllerCommand(
-          rushTowardsReefTraj,
-          robotDrive::getP, 
-          DriveConstants.kDriveKinematics, 
-          new PIDController(1, 0, 0), 
-          new PIDController(1, 0, 0),
-          getThetaController(),
-          robotDrive::setModuleStates,
-          robotDrive);
-      return rushTowardsReefCommand;
+
+      return swerveCommand(traj, true);
   }
 
-  private Command moveToReefCommand_2(){
-    Trajectory moveToReefTraj = TrajectoryGenerator.generateTrajectory(
-      List.of(
-        new Pose2d(new Translation2d(3.405, 5.375), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(3.655, 4.948), Rotation2d.fromDegrees(315))),
+  private Command leftReef_Coral2(){
+      Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(5.689, 5.362), Rotation2d.fromDegrees(250)),
+      List.of(),
+      new Pose2d(new Translation2d(5.477, 5.431), Rotation2d.fromDegrees(250)), 
       AutoConstants.kTrajConfigSlow);
-    SwerveControllerCommand moveToReefCommand = new SwerveControllerCommand(
-          moveToReefTraj,
-          robotDrive::getP, 
-          DriveConstants.kDriveKinematics, 
-          new PIDController(1, 0, 0), 
-          new PIDController(1, 0, 0),
-          getThetaController(),
-          robotDrive::setModuleStates,
-          robotDrive);
-      return moveToReefCommand.andThen(() -> robotDrive.drive(0, 0, 0, false, false));
+
+      return swerveCommand(cenTrajectory, true);
   }
 
-  private Command moveToCoralStationCommand_2(){
-    Trajectory moveBackToCoralStationTraj = TrajectoryGenerator.generateTrajectory(
+  private Command leftReef_Coral3(){
+    Trajectory traj = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(5.477, 5.431), Rotation2d.fromDegrees(250)),
+      List.of(),
+      new Pose2d(new Translation2d(4.977, 5.806), Rotation2d.fromDegrees(260)), 
+      AutoConstants.kTrajConfigSlow);
+
+      return swerveCommand(traj, false);
+  }
+
+  private Command leftReef_Coral4(){
+    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(4.977, 5.806), Rotation2d.fromDegrees(260)),
       List.of(
-        new Pose2d(new Translation2d(3.655, 4.948), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(2.246, 6.386), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(1.165, 7.092), Rotation2d.fromDegrees(315))),
+      new Translation2d(4.12, 6.076),
+      new Translation2d(2.8563, 6.4375)
+      ),
+      new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(310)),
+      AutoConstants.kTrajConfigFast);
+
+      return swerveCommand(cenTrajectory, true);
+  }
+
+  private Command leftReef_Coral5(){
+    Trajectory traj = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(310)),
+      List.of(
+      new Translation2d(2.3297, 6.6179)),
+      new Pose2d(new Translation2d(3.278, 5.625), Rotation2d.fromDegrees(310)),
+      AutoConstants.kTrajConfigStandardReverse);
+
+      return swerveCommand(traj, false);
+  }
+
+  private Command leftReef_Coral6(){
+    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(3.278, 5.625), Rotation2d.fromDegrees(310)),
+      List.of(),
+      new Pose2d(new Translation2d(3.4731, 5.4295), Rotation2d.fromDegrees(310)),
+      AutoConstants.kTrajConfigSlowReverse);
+
+      return swerveCommand(cenTrajectory, true);
+  }
+
+  private Command leftReef_Coral7(){
+    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(3.4731, 5.4295), Rotation2d.fromDegrees(310)),
+      List.of(
+      new Translation2d(2.616, 6.362)),
+      new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(300)),
       AutoConstants.kTrajConfigStandard);
-    SwerveControllerCommand moveBackToCoralStationCommand = new SwerveControllerCommand(
-          moveBackToCoralStationTraj,
-          robotDrive::getP, 
-          DriveConstants.kDriveKinematics, 
-          new PIDController(1, 0, 0), 
-          new PIDController(1, 0, 0),
-          getThetaController(),
-          robotDrive::setModuleStates,
-          robotDrive);
-      return moveBackToCoralStationCommand.andThen(() -> robotDrive.drive(0, 0, 0, false, false));
+
+      return swerveCommand(cenTrajectory, true);
   }
 
-  private Command rushTowardsReefCommand_2(){
-    Trajectory againRushTowardsReefTraj = TrajectoryGenerator.generateTrajectory(
+  private Command leftReef_Coral8(){
+    Trajectory traj = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(310)),
       List.of(
-        new Pose2d(new Translation2d(1.165, 7.092), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(2.195, 6.235), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(3.589, 5.375), Rotation2d.fromDegrees(315))),
-      AutoConstants.kTrajConfigFast);
-    SwerveControllerCommand againRushTowardsReefCommand = new SwerveControllerCommand(
-          againRushTowardsReefTraj,
-          robotDrive::getP, 
-          DriveConstants.kDriveKinematics, 
-          new PIDController(1, 0, 0), 
-          new PIDController(1, 0, 0),
-          getThetaController(),
-          robotDrive::setModuleStates,
-          robotDrive);
-      return againRushTowardsReefCommand.andThen(() -> robotDrive.drive(0, 0, 0, false, false));
+      new Translation2d(2.3297, 6.6179)
+      ),
+      new Pose2d(new Translation2d(3.5633, 5.715), Rotation2d.fromDegrees(310)),
+      AutoConstants.kTrajConfigStandardReverse);
+
+      return swerveCommand(traj, false);
   }
 
-  private Command moveToReefCommand_3(){
-    Trajectory againMoveToReefTraj = TrajectoryGenerator.generateTrajectory(
-      List.of(
-        new Pose2d(new Translation2d(3.589, 5.375), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(3.951, 5.097), Rotation2d.fromDegrees(315))),
-      AutoConstants.kTrajConfigSlow);
-    SwerveControllerCommand againMoveToReefCommand = new SwerveControllerCommand(
-          againMoveToReefTraj,
-          robotDrive::getP, 
-          DriveConstants.kDriveKinematics, 
-          new PIDController(1, 0, 0), 
-          new PIDController(1, 0, 0),
-          getThetaController(),
-          robotDrive::setModuleStates,
-          robotDrive);
-      return againMoveToReefCommand.andThen(() -> robotDrive.drive(0, 0, 0, false, false));
-  }
+  private Command leftReef_Coral9(){
+    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+      new Pose2d(new Translation2d(3.5633, 5.715), Rotation2d.fromDegrees(310)),
+      List.of(),
+      new Pose2d(new Translation2d(3.750, 5.595), Rotation2d.fromDegrees(310)), 
+      AutoConstants.kTrajConfigSlowReverse);
 
-  private Command moveToCoralStationCommand_3(){
-    Trajectory againMoveToCoralStationTraj = TrajectoryGenerator.generateTrajectory(
-      List.of(
-        new Pose2d(new Translation2d(3.951, 5.097), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(3.051, 6.266), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(1.165, 7.092), Rotation2d.fromDegrees(315))),
-      AutoConstants.kTrajConfigStandard);
-    SwerveControllerCommand againMoveToCoralStationCommand = new SwerveControllerCommand(
-          againMoveToCoralStationTraj,
-          robotDrive::getP, 
-          DriveConstants.kDriveKinematics, 
-          new PIDController(1, 0, 0), 
-          new PIDController(1, 0, 0),
-          getThetaController(),
-          robotDrive::setModuleStates,
-          robotDrive);
-      return againMoveToCoralStationCommand.andThen(() -> robotDrive.drive(0, 0, 0, false, false));
-  }
-
-  private Command rushTowardsReefCommand_3(){
-    Trajectory againRushBackTowardsReefTraj = TrajectoryGenerator.generateTrajectory(
-      List.of(
-        new Pose2d(new Translation2d(1.165, 7.092), Rotation2d.fromDegrees(315)),
-        new Pose2d(new Translation2d(2.170, 6.386), Rotation2d.fromDegrees(335)),
-        new Pose2d(new Translation2d(2.93, 4.324), Rotation2d.fromDegrees(0))),
-      AutoConstants.kTrajConfigFast);
-    SwerveControllerCommand againRushBackTowardsReefCommand = new SwerveControllerCommand(
-          againRushBackTowardsReefTraj,
-          robotDrive::getP,
-          DriveConstants.kDriveKinematics, 
-          new PIDController(1, 0, 0), 
-          new PIDController(1, 0, 0),
-          getThetaController(),
-          robotDrive::setModuleStates,
-          robotDrive);
-      return againRushBackTowardsReefCommand.andThen(() -> robotDrive.drive(0, 0, 0, false, false));
-  }
-
-  private Command moveTowardsReefCommand_4(){
-    Trajectory againMoveBackToReefTraj = TrajectoryGenerator.generateTrajectory(
-      List.of(
-        new Pose2d(new Translation2d(2.93, 4.324), Rotation2d.fromDegrees(0)),
-        new Pose2d(new Translation2d(3.232, 4.182), Rotation2d.fromDegrees(0))),
-      AutoConstants.kTrajConfigSlow);
-    SwerveControllerCommand againMoveToReefCommand = new SwerveControllerCommand(
-          againMoveBackToReefTraj,
-          robotDrive::getP, 
-          DriveConstants.kDriveKinematics, 
-          new PIDController(1, 0, 0), 
-          new PIDController(1, 0, 0),
-          getThetaController(),
-          robotDrive::setModuleStates,
-          robotDrive);
-      return againMoveToReefCommand.andThen(() -> robotDrive.drive(0, 0, 0, false, false));
+      return swerveCommand(cenTrajectory, true);
   }
 
 }

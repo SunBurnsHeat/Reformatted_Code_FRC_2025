@@ -9,64 +9,54 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.LEDConstants;
 
 public class LedSubsystem extends SubsystemBase {
     private final AddressableLED ledBar;
-    private final AddressableLEDBuffer ledBuffer;
-    private final ElevatorSubsystem elevator;
-    private final ScorerSubsystem scorer; // Added dependency
-
     private LEDPattern allianceLED;
-    private LEDPattern currentPattern;
+
     private enum LedState { BLANK, RAINBOW, SCROLL, BREATHING, ALLIANCE_SOLID, GREEN, YELLOW }
     private LedState currentState = LedState.BLANK;
 
-    public LedSubsystem(ElevatorSubsystem elevator, ScorerSubsystem scorer) {
-        this.elevator = elevator;
-        this.scorer = scorer;
+    private boolean hasCoral = false; 
+    private boolean ongoingCoral = false; 
 
+    public LedSubsystem() {
         // Initialize alliance color
         setAllianceColor();
 
         // Initialize LED hardware
         ledBar = new AddressableLED(LEDConstants.kLEDBarPWM);
         ledBar.setLength(LEDConstants.ledLength);
-        ledBuffer = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
 
         // Start with blank pattern
         setBlank();
-        ledBar.setData(ledBuffer);
         ledBar.start();
+
+        // Register this subsystem with the command scheduler
+        this.register(); // Ensures periodic() is called automatically
     }
 
-    // @Override
-    // public void periodic() {
-    //     // Update LED state based on robot mode and conditions
-    //     if (DriverStation.isDisabled()) {
-    //         setScroll();
-    //     } else if (DriverStation.isAutonomous()) {
-    //         setRainbow();
-    //     } else if (DriverStation.isTeleop()) {
-    //         double timeRemaining = DriverStation.getMatchTime();
-    //         if (timeRemaining > 0 && timeRemaining < 20) {
-    //             setBreathing();
-    //         } else if (scorer.hasCoral()) {
-    //             setGreen();
-    //         } else if (scorer.ongoingCoral()) {
-    //             setYellow();
-    //         } else {
-    //             setAllianceSolid();
-    //         }
-    //     }
-
-    //     // Apply the current pattern if it changed
-    //     if (currentPattern != null) {
-    //         currentPattern.applyTo(ledBuffer);
-    //         ledBar.setData(ledBuffer);
-    //     }
-    // }
+    @Override
+    public void periodic() {
+        // Update LED state based on robot mode and conditions
+        if (DriverStation.isDisabled()) {
+            setScroll();
+        } else if (DriverStation.isAutonomous()) {
+            setRainbow();
+        } else if (DriverStation.isTeleop()) {
+            // double timeRemaining = DriverStation.getMatchTime();
+            // if (timeRemaining > 0 && timeRemaining < 20) {
+            //     setBreathing();
+            // } else if (hasCoral) {
+            //     setGreen();
+            // } else if (ongoingCoral) { 
+            //     setYellow();
+            // } else {
+                setAllianceSolid();
+            // }
+        }
+    }
 
     private void setAllianceColor() {
         DriverStation.Alliance alliance = DriverStation.getAlliance().orElse(DriverStation.Alliance.Red);
@@ -75,62 +65,84 @@ public class LedSubsystem extends SubsystemBase {
             : LEDPattern.solid(Color.kBlue);
     }
 
-    // Public methods to set specific patterns
+    // Helper method to create a new buffer
+    private AddressableLEDBuffer createBuffer() {
+        return new AddressableLEDBuffer(LEDConstants.ledBufferLength);
+    }
+
+    // Public methods with individual buffers
     public void setBlank() {
         if (currentState != LedState.BLANK) {
-            currentPattern = LEDPattern.solid(Color.kBlack);
+            AddressableLEDBuffer buffer = createBuffer();
+            LEDPattern pattern = LEDPattern.solid(Color.kBlack);
+            pattern.applyTo(buffer);
+            ledBar.setData(buffer);
             currentState = LedState.BLANK;
         }
     }
 
     public void setRainbow() {
         if (currentState != LedState.RAINBOW) {
-            currentPattern = LEDPattern.rainbow(255, 128).atBrightness(Percent.of(100));
+            AddressableLEDBuffer buffer = createBuffer();
+            LEDPattern pattern = LEDPattern.rainbow(255, 128).atBrightness(Percent.of(100));
+            pattern.applyTo(buffer);
+            ledBar.setData(buffer);
             currentState = LedState.RAINBOW;
         }
     }
 
     public void setScroll() {
         if (currentState != LedState.SCROLL) {
-            currentPattern = LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kCoral, Color.kWheat)
+            AddressableLEDBuffer buffer = createBuffer();
+            LEDPattern pattern = LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kCoral, Color.kWheat)
                 .scrollAtRelativeSpeed(Percent.per(Second).of(25));
+            pattern.applyTo(buffer);
+            ledBar.setData(buffer);
             currentState = LedState.SCROLL;
         }
     }
 
     public void setBreathing() {
         if (currentState != LedState.BREATHING) {
-            currentPattern = allianceLED.breathe(Second.of(2.5));
+            AddressableLEDBuffer buffer = createBuffer();
+            LEDPattern pattern = allianceLED.breathe(Second.of(2.5));
+            pattern.applyTo(buffer);
+            ledBar.setData(buffer);
             currentState = LedState.BREATHING;
         }
     }
 
     public void setAllianceSolid() {
         if (currentState != LedState.ALLIANCE_SOLID) {
-            currentPattern = allianceLED;
+            AddressableLEDBuffer buffer = createBuffer();
+            LEDPattern pattern = allianceLED;
+            pattern.applyTo(buffer);
+            ledBar.setData(buffer);
             currentState = LedState.ALLIANCE_SOLID;
         }
     }
 
     public void setGreen() {
         if (currentState != LedState.GREEN) {
-            currentPattern = LEDPattern.solid(Color.kGreen);
+            AddressableLEDBuffer buffer = createBuffer();
+            LEDPattern pattern = LEDPattern.solid(Color.kGreen);
+            pattern.applyTo(buffer);
+            ledBar.setData(buffer);
             currentState = LedState.GREEN;
         }
     }
 
     public void setYellow() {
         if (currentState != LedState.YELLOW) {
-            currentPattern = LEDPattern.solid(Color.kYellow);
+            AddressableLEDBuffer buffer = createBuffer();
+            LEDPattern pattern = LEDPattern.solid(Color.kYellow);
+            pattern.applyTo(buffer);
+            ledBar.setData(buffer);
             currentState = LedState.YELLOW;
         }
     }
 
-    public void setElevatorProgress() {
-        currentPattern = LEDPattern.progressMaskLayer(() -> elevator.getPosition() / ElevatorConstants.kElevatorMaxHeightRaw)
-            .overlayOn(LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kTurquoise, Color.kNavy));
-        currentState = null; // Custom state, not tracked
-    }
+    // Removed setElevatorProgress() since it depended on ElevatorSubsystem
 
     public void stop() {
         ledBar.stop();
@@ -139,8 +151,13 @@ public class LedSubsystem extends SubsystemBase {
     public void start() {
         ledBar.start();
     }
-}
 
+    private static final LedSubsystem instance = new LedSubsystem();
+
+    public static LedSubsystem getInstance() {
+        return instance;
+    }
+}
 // public class LedSubsystem extends SubsystemBase {
 
 //     private static ElevatorSubsystem elevator = new ElevatorSubsystem();

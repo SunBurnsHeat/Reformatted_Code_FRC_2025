@@ -23,23 +23,23 @@ public class LedCycleCommand extends Command {
 
     @Override
     public void execute() {
-        // Same logic as the original periodic()
-        if (DriverStation.isDisabled()) {
-            ledSubsystem.setScroll();
-        } else if (DriverStation.isAutonomous()) {
-            ledSubsystem.setRainbow();
-        } else if (DriverStation.isTeleop()) {
-            double timeRemaining = DriverStation.getMatchTime();
-            if (timeRemaining > 0 && timeRemaining < 20) {
-                ledSubsystem.setBreathing();
-            } else if (scorer.hasCoral()) {
-                ledSubsystem.setGreen();
-            } else if (scorer.ongoingCoral()) {
-                ledSubsystem.setYellow();
-            } else {
-                ledSubsystem.setAllianceSolid();
-            }
-        }
+        ledSubsystem.setAllianceSolid();
+        // if (DriverStation.isDisabled()) {
+        //     ledSubsystem.setScroll();
+        // } else if (DriverStation.isAutonomous()) {
+        //     ledSubsystem.setRainbow();
+        // } else if (DriverStation.isTeleop()) {
+        //     double timeRemaining = DriverStation.getMatchTime();
+        //     if (timeRemaining > 0 && timeRemaining < 20) {
+        //         ledSubsystem.setBreathing();
+        //     } else if (scorer.holdongCoral()) {
+        //         ledSubsystem.setGreen();
+        //     } else if (scorer.ongoingCoral()) {
+        //         ledSubsystem.setYellow();
+        //     } else {
+        //         ledSubsystem.setAllianceSolid();
+        //     }
+        // }
     }
 
     @Override

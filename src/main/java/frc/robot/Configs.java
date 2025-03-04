@@ -87,7 +87,7 @@ public final class Configs {
                         .velocityFF(0.0)
                         .outputRange(-0.2, 0.2);
                 leadElevatorMaxConfig.softLimit
-                        .forwardSoftLimit(47)
+                        .forwardSoftLimit(47.5)
                         .forwardSoftLimitEnabled(true)
                         .reverseSoftLimit(0)
                         .reverseSoftLimitEnabled(true);

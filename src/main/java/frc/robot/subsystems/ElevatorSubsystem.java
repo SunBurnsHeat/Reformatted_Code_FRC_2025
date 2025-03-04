@@ -31,7 +31,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private SparkClosedLoopController leadElevatorController;
 
-    private Double targetPosition = 0.0;
+    private Double targetPosition = 1.25;
     
     public ElevatorSubsystem(){
         CommandScheduler.getInstance().registerSubsystem(this);
@@ -102,6 +102,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public boolean atHeight(){
         return Math.abs(getPosition() - targetPosition) < ElevatorConstants.kElevatorHeightDeadbandInches;
+    }
+
+    public void incremPos(){
+        targetPosition += 1.5;
+    }
+
+    public void decremPos(){
+        targetPosition -= 1.5;
     }
 
     @Override

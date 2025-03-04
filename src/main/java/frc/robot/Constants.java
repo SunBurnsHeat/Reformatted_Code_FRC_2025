@@ -85,14 +85,14 @@ public final class Constants {
     }
 
     public static final class AutoConstants {
-        public static final double kMaxSpeedMetersPerSecondStandard = 1.75;
-        public static final double kMaxAccelerationMetersPerSecondSquaredStandard = 2.25;
+        public static final double kMaxSpeedMetersPerSecondStandard = 2.25;
+        public static final double kMaxAccelerationMetersPerSecondSquaredStandard = 1.75;
 
-        public static final double kMaxSpeedMetersPerSecondFast = 2.25;
-        public static final double kMaxAccelerationMetersPerSecondSquaredFast = 2.5;
+        public static final double kMaxSpeedMetersPerSecondFast = 2.5;
+        public static final double kMaxAccelerationMetersPerSecondSquaredFast = 2.25;
 
-        public static final double kMaxSpeedMetersPerSecondSlow = 1.45;
-        public static final double kMaxAccelerationMetersPerSecondSquaredSlow = 1.75;
+        public static final double kMaxSpeedMetersPerSecondSlow = 1.75;
+        public static final double kMaxAccelerationMetersPerSecondSquaredSlow = 1.45;
 
         public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
         public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
@@ -160,12 +160,12 @@ public final class Constants {
         public static final double kElevatorForwardSoftLimit = kElevatorMaxHeightRaw;
         public static final double kElevatorReverseSoftLimit = 0;
 
-        public static final double kElevatorHeightDeadbandInches = 0.5;
+        public static final double kElevatorHeightDeadbandInches = 0.35;
 
-        public static final double kElevatorPosition_L0 = 0;
-        public static final double kElevatorPosition_L1 = 12;
-        public static final double kElevatorPosition_L2 = 20;
-        public static final double kElevatorPosition_L3 = 46.5;
+        public static final double kElevatorPosition_L0 = 1.25;
+        public static final double kElevatorPosition_L1 = 10;
+        public static final double kElevatorPosition_L2 = 25;
+        public static final double kElevatorPosition_L3 = 47.5;
     }
 
     public static final class ArmConstants{
@@ -183,11 +183,11 @@ public final class Constants {
         public static final double kArmPositionDeadband = 01;
         public static final double kArmRollerSpeedDeadband = 100;
 
-        public static final double kArmForwardSoftLimit = 90;
+        public static final double kArmForwardSoftLimit = 120;
         public static final double kArmReverseSoftLimit = 0;
 
         public static final double kFullExtendPosition = 90;
-        public static final double kStowPosition = 0;
+        public static final double kStowPosition = 15;
         public static final double kPartialPosition = 30;
     }
 

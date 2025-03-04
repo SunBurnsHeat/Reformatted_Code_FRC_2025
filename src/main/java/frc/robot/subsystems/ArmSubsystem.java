@@ -18,7 +18,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Configs;
 import frc.robot.Constants.ArmConstants;
-import frc.robot.Constants.OIConstants;
 
 public class ArmSubsystem extends SubsystemBase{
     
@@ -28,15 +27,11 @@ public class ArmSubsystem extends SubsystemBase{
     private final AbsoluteEncoder armMotorEncoder;
     private final RelativeEncoder rollerMotorEncoder;
 
-    // private ArmFeedforward armFF;
-
     private final SparkClosedLoopController armMotorController;
     private final SparkClosedLoopController rollerMotorController;
 
-    private double targetPosition = 0.0;
-    private double targetSetpoint = 0.0;
+    private Double targetPosition = 15.0;
 
-    // private final XboxController controller = new XboxController(OIConstants.kCoPilotControllerPort);
 
     public ArmSubsystem(){
         CommandScheduler.getInstance().registerSubsystem(this);
@@ -57,7 +52,6 @@ public class ArmSubsystem extends SubsystemBase{
     }
 
     public void setArmRoller(double rollerSetpoint){ // speed is in RPM
-        targetSetpoint = rollerSetpoint;
         rollerMotorController.setReference(rollerSetpoint, ControlType.kDutyCycle);
     }
 
@@ -86,8 +80,12 @@ public class ArmSubsystem extends SubsystemBase{
         return Math.abs(getArmPosition() - targetPosition) < ArmConstants.kArmPositionDeadband;
     }
 
-    public boolean atSpeed(){
-        return Math.abs(getRollerVelocity() - targetSetpoint) < ArmConstants.kArmRollerSpeedDeadband;
+    public void incremPos(){
+        targetPosition += 5.0;
+    }
+
+    public void decremPos(){
+        targetPosition -= 5.0;
     }
 
     @Override
@@ -103,7 +101,7 @@ public class ArmSubsystem extends SubsystemBase{
         // double FF = armFF.calculate(Units.degreesToRadians(targetPosition), velocity);    
         
         // if (!atPosition()) {
-            // armMotorController.setReference(targetPosition, ControlType.kPosition/* , ClosedLoopSlot.kSlot0 , FF*/);
+            armMotorController.setReference(targetPosition, ControlType.kPosition/* , ClosedLoopSlot.kSlot0 , FF*/);
         // }
         // else{
         //     armMotorController.setReference(0, ControlType.kDutyCycle);
@@ -113,7 +111,6 @@ public class ArmSubsystem extends SubsystemBase{
         SmartDashboard.putNumber("Arm Target Position", targetPosition);
         SmartDashboard.putNumber("Arm Position", getArmPosition());
         SmartDashboard.putBoolean("Arm at Position", atPosition());
-        SmartDashboard.putBoolean("Roller at Speed", atSpeed());
     }
 
 }

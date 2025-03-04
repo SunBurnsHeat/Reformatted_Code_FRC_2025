@@ -46,12 +46,12 @@ public class WinchSubsystem extends SubsystemBase{
 
     @Override
     public void periodic() {
-        // if(Math.abs(controller.getLeftY()) < 0.015) {
-        //     setWinch(WinchConstants.kIdleSpeed);
-        // }
-        // else {
-        //     setWinch(-controller.getLeftY()*WinchConstants.kWinchSpeed);
-        // }
+        if(Math.abs(controller.getLeftY()) < 0.015) {
+            setWinch(WinchConstants.kIdleSpeed);
+        }
+        else {
+            setWinch(-controller.getLeftY()*0.5);
+        }
     }
 
     public void openTrap(){
