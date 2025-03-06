@@ -210,11 +210,11 @@ public final class Constants {
         public static final int kTrapCANID = 12;
         public static final int kWinchCANID = 11;
 
-        public static final double kTopPosition = -200;
+        public static final double kTopPosition = 210;
         public static final double kIdlePosition = -90; 
 
-        public static final double kIdleSpeed = 0.25;
-        public static final double kWinchSpeed = -0.9;
+        public static final double kIdleSpeed = -0.25;
+        public static final double kWinchSpeed = 0.55;
 
         public static final double trapOpenSpeed = - 0.3;
         public static final double trapCloseSpeed = 0.45;

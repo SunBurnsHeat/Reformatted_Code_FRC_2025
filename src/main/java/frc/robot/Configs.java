@@ -195,12 +195,13 @@ public final class Configs {
         static{
                 winchMaxConfig
                         .idleMode(IdleMode.kBrake)
+                        .inverted(true)
                         .smartCurrentLimit(40)
                         .voltageCompensation(12);
                 winchMaxConfig.softLimit
-                        .forwardSoftLimit(0)
+                        .forwardSoftLimit(WinchConstants.kTopPosition)
                         .forwardSoftLimitEnabled(true)
-                        .reverseSoftLimit(WinchConstants.kTopPosition)
+                        .reverseSoftLimit(0)
                         .reverseSoftLimitEnabled(true);
                 winchMaxConfig.closedLoop
                         .feedbackSensor(FeedbackSensor.kPrimaryEncoder)
