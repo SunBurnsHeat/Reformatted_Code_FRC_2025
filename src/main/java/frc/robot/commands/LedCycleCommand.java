@@ -18,7 +18,7 @@ public class LedCycleCommand extends Command {
     @Override
     public void initialize() {
         // Optional: Reset LEDs to a known state
-        ledSubsystem.setBlank();
+        ledSubsystem.startLedBar();
     }
 
     @Override
@@ -50,6 +50,6 @@ public class LedCycleCommand extends Command {
     @Override
     public void end(boolean interrupted) {
         // Optional: Set LEDs to a safe state when interrupted
-        ledSubsystem.setBlank();
+        // ledSubsystem.setBlank();
     }
 }

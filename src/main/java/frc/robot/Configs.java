@@ -151,7 +151,7 @@ public final class Configs {
 
         static{
                 armMaxConfig
-                        .idleMode(IdleMode.kBrake)
+                        .idleMode(IdleMode.kCoast)
                         .smartCurrentLimit(40)
                         .voltageCompensation(12);
                 armMaxConfig.absoluteEncoder

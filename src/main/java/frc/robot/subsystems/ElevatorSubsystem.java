@@ -105,10 +105,18 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void incremPos(){
-        targetPosition += 1.5;
+        if (targetPosition > ElevatorConstants.kElevatorForwardSoftLimit) {
+            targetPosition = targetPosition;
+        }
+        else{
+            targetPosition += 1.5;
+        }
     }
 
     public void decremPos(){
+        if (targetPosition < ElevatorConstants.kElevatorReverseSoftLimit) {
+            targetPosition = targetPosition;
+        }
         targetPosition -= 1.5;
     }
 

@@ -149,7 +149,7 @@ public final class Constants {
         // public static final double kA = 0.12;
         
 
-        public static final double kElevatorMaxHeightRaw = 150;
+        public static final double kElevatorMaxHeightInches = 47.5;
         public static final double kElevatorMaxSpeed = 1.0;
 
         // public static final double kMaxVelocityRaw = 1500;
@@ -157,7 +157,7 @@ public final class Constants {
 
         public static final double kElevatorMotorGearRatio = 15.0;
 
-        public static final double kElevatorForwardSoftLimit = kElevatorMaxHeightRaw;
+        public static final double kElevatorForwardSoftLimit = kElevatorMaxHeightInches;
         public static final double kElevatorReverseSoftLimit = 0;
 
         public static final double kElevatorHeightDeadbandInches = 0.35;
@@ -184,7 +184,7 @@ public final class Constants {
         public static final double kArmRollerSpeedDeadband = 100;
 
         public static final double kArmForwardSoftLimit = 120;
-        public static final double kArmReverseSoftLimit = 0;
+        public static final double kArmReverseSoftLimit = 10;
 
         public static final double kFullExtendPosition = 90;
         public static final double kStowPosition = 15;
@@ -195,7 +195,7 @@ public final class Constants {
         public static final int kScorerRightMotorCANID = 16;
         public static final int kScorerLeftMotorCANID = 15;
 
-        public static final double kSensorProxDistanceMM = 6;
+        public static final double kSensorProxDistanceMM = 8;
         public static final int kInitLaserCANID = 21;
         public static final int kEndLaserCANID = 22;
 
@@ -217,6 +217,6 @@ public final class Constants {
         public static final double kWinchSpeed = -0.9;
 
         public static final double trapOpenSpeed = - 0.3;
-        public static final double trapCloseSpeed = 0.15;
+        public static final double trapCloseSpeed = 0.45;
     }
 }

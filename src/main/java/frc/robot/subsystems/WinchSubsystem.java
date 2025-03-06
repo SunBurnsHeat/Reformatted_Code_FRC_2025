@@ -44,15 +44,15 @@ public class WinchSubsystem extends SubsystemBase{
         return winchEncoder.getPosition();
     }
 
-    @Override
-    public void periodic() {
-        if(Math.abs(controller.getLeftY()) < 0.015) {
-            setWinch(WinchConstants.kIdleSpeed);
-        }
-        else {
-            setWinch(-controller.getLeftY()*0.5);
-        }
-    }
+    // @Override
+    // public void periodic() {
+    //     if(Math.abs(controller.getLeftY()) < 0.015) {
+    //         setWinch(WinchConstants.kIdleSpeed);
+    //     }
+    //     else {
+    //         setWinch(-controller.getLeftY()*0.5);
+    //     }
+    // }
 
     public void openTrap(){
         trapMax.set(WinchConstants.trapOpenSpeed);

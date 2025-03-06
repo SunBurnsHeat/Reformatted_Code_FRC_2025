@@ -81,11 +81,21 @@ public class ArmSubsystem extends SubsystemBase{
     }
 
     public void incremPos(){
-        targetPosition += 5.0;
+        if (targetPosition == ArmConstants.kFullExtendPosition) {
+            targetPosition = targetPosition;
+        }
+        else{
+            targetPosition += 5.0;
+        }
     }
 
     public void decremPos(){
-        targetPosition -= 5.0;
+        if (targetPosition == 10) {
+            targetPosition = targetPosition;
+        }
+        else{
+            targetPosition -= 5.0;
+        }
     }
 
     @Override

@@ -32,6 +32,9 @@ public class ScorerSubsystem extends SubsystemBase{
     public boolean initProx;
     public boolean endProx;
 
+    private double initValue;
+    private double endValue;
+
 
     public ScorerSubsystem(){
         CommandScheduler.getInstance().registerSubsystem(this);
@@ -47,7 +50,7 @@ public class ScorerSubsystem extends SubsystemBase{
         laserCan_init = new LaserCan(ScorerConstants.kInitLaserCANID);
         try {
             laserCan_init.setRangingMode(LaserCan.RangingMode.SHORT);
-            laserCan_init.setRegionOfInterest(new LaserCan.RegionOfInterest(4, 4, 8, 8));
+            laserCan_init.setRegionOfInterest(new LaserCan.RegionOfInterest(4, 4, 8, 14));
             laserCan_init.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS);
         } catch (ConfigurationFailedException e) {
             System.out.println("Configuration failed! " + e);
@@ -76,7 +79,7 @@ public class ScorerSubsystem extends SubsystemBase{
         LaserCan.Measurement measurementInit = laserCan_init.getMeasurement();
         double initDistance = measurementInit.distance_mm;
         if (measurementInit != null && measurementInit.status == laserCan_init.LASERCAN_STATUS_VALID_MEASUREMENT) {
-            return initDistance < ScorerConstants.kSensorProxDistanceMM;
+            return initDistance < 40;
         }
         else{
             return false;
@@ -87,11 +90,11 @@ public class ScorerSubsystem extends SubsystemBase{
         LaserCan.Measurement measurementEnd = laserCan_end.getMeasurement();
         double endDistance = measurementEnd.distance_mm;
         if (measurementEnd != null && measurementEnd.status == laserCan_init.LASERCAN_STATUS_VALID_MEASUREMENT) {
-            return endDistance < ScorerConstants.kSensorProxDistanceMM;
+            return endDistance < 40;
         }
         else{
             return false;
-        }
+        } 
     }
 
     public void stop(){
@@ -173,7 +176,6 @@ public class ScorerSubsystem extends SubsystemBase{
 
     @Override
     public void periodic() {
-
         initProx = getProxStateInit();
         endProx = getProxStateEnd();
 
@@ -201,5 +203,8 @@ public class ScorerSubsystem extends SubsystemBase{
         SmartDashboard.putBoolean("init Prox State", initProx);
         SmartDashboard.putBoolean("end Prox State", endProx);
 
+        if (!hasCoral()) {
+            LedSubsystem.setAllianceSolid();
+        }
     }
 }
