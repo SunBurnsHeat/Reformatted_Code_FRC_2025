@@ -186,7 +186,7 @@ public final class Constants {
         public static final double kArmForwardSoftLimit = 120;
         public static final double kArmReverseSoftLimit = 10;
 
-        public static final double kFullExtendPosition = 90;
+        public static final double kFullExtendPosition = 190;
         public static final double kStowPosition = 15;
         public static final double kPartialPosition = 30;
     }

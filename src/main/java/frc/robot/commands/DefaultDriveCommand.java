@@ -1,22 +1,34 @@
 package frc.robot.commands;
 
+import org.photonvision.targeting.PhotonTrackedTarget;
+
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.VisionSubsystem;
 
 public class DefaultDriveCommand extends Command{
 
     // drive subsystem object
     private final DriveSubsystem driveSubsystem;
+    // private final VisionSubsystem visionSubsystem;
     // the controller's object
     private XboxController driverController = new XboxController(OIConstants.kDriverControllerPort);
+
+    // Vision alignment constants
+    private static final double VISION_TURN_KP = 0.025;
+    private static final int TARGET_FIDUCIAL_ID = 7;
+    private static final double AIMING_DEADBAND = 2.0;
     
     // the class's constructor
-    public DefaultDriveCommand(DriveSubsystem subsystem){
+    public DefaultDriveCommand(DriveSubsystem subsystem/* *, VisionSubsystem vision*/){
         this.driveSubsystem = subsystem; // assigns given subsystem to drive
+        // this.visionSubsystem = vision;
         addRequirements(subsystem); // enforces argument to prevent conflict
     }
 
@@ -44,6 +56,38 @@ public class DefaultDriveCommand extends Command{
         multiplier = 0.65; // moderate mode (65% speed) for regular control
         povMultiplier = 1;  // normal mode (100% speed) for POV control
         }
+
+        // // Manual swerve inputs for photon steering
+        // double forward = -multiplier * MathUtil.applyDeadband(driverController.getLeftY(), 0.015) * DriveConstants.kMaxSpeedMetersPerSec;
+        // double strafe = -multiplier * MathUtil.applyDeadband(driverController.getLeftX(), 0.015) * DriveConstants.kMaxSpeedMetersPerSec;
+        // double rotation = -multiplier * 0.85 * MathUtil.applyDeadband(driverController.getRightX(), 0.01) * DriveConstants.kMaxAngSpeedRadiansPerSec;
+
+        // boolean targetVisible = false;
+        // double targetYaw = 0.0;
+        // if (driverController.getAButton() && visionSubsystem.hasTarget()) {
+        //     PhotonTrackedTarget target = visionSubsystem.getBestTarget();
+        //     if (target.getFiducialId() > 0) {
+        //         Rotation2d robotHeading = driveSubsystem.getHeadingRotation2d();
+        //         targetYaw = visionSubsystem.getTargetYawAdjusted(robotHeading);
+        //         targetVisible = true;
+
+        //         if (Math.abs(targetYaw) > AIMING_DEADBAND) {
+        //             rotation = - targetYaw*VISION_TURN_KP*DriveConstants.kMaxAngSpeedRadiansPerSec;
+        //         }
+        //         else{
+        //             rotation = 0.0;
+        //         }
+
+        //         Translation2d cameraOffset = visionSubsystem.getCameraOffset();
+        //         double distance = visionSubsystem.getDistanceToTarget(1.2);
+        //         if (distance > 0) {
+                    
+        //             double yawRad = Math.toRadians(targetYaw);
+        //             forward -= cameraOffset.getX()*Math.cos(yawRad)*multiplier;
+        //             strafe -= cameraOffset.getY()*Math.sin(yawRad)*multiplier;
+        //         }
+        //     }
+        // }
 
 
         // // when Button A is pressed, ....
@@ -136,8 +180,6 @@ public class DefaultDriveCommand extends Command{
                     driveSubsystem.drive(povMultiplier*0.25, povMultiplier*0.25, povMultiplier*fineTurn, true, true);
             }
         }
-
-
     }
 
     @Override

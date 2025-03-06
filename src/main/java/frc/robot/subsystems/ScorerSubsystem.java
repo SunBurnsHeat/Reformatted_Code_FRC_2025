@@ -198,8 +198,8 @@ public class ScorerSubsystem extends SubsystemBase{
         //     // scorerLeftController.setReference(0, ControlType.kDutyCycle);
         // }
 
-        SmartDashboard.putNumber("left scorer output", scorerLeftMax.getAppliedOutput());
-        SmartDashboard.putNumber("right scorer output", scorerRightMax.getAppliedOutput());
+        // SmartDashboard.putNumber("left scorer output", scorerLeftMax.getAppliedOutput());
+        // SmartDashboard.putNumber("right scorer output", scorerRightMax.getAppliedOutput());
         SmartDashboard.putBoolean("init Prox State", initProx);
         SmartDashboard.putBoolean("end Prox State", endProx);
 

@@ -37,11 +37,11 @@ import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.CoralIntakeCommand;
 import frc.robot.commands.DefaultDriveCommand;
-import frc.robot.commands.LedCycleCommand;
+// import frc.robot.commands.LedCycleCommand;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
-import frc.robot.subsystems.LedSubsystem;
+// import frc.robot.subsystems.LedSubsystem;
 import frc.robot.subsystems.ScorerSubsystem;
 import frc.robot.subsystems.WinchSubsystem;
 
@@ -79,8 +79,8 @@ public class RobotContainer {
     robotDrive.setDefaultCommand(new DefaultDriveCommand(robotDrive));
     // led.setDefaultCommand(new LedCycleCommand(led, scorer));
 
-    driverControllerCommand.a().whileTrue(new RunCommand(() -> robotDrive.setX()));
-    driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
+    driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.setX()));
+    driverControllerCommand.start().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
 
     driverControllerCommand.leftBumper().whileTrue(new StartEndCommand(() -> winch.openTrap(), () -> winch.stopTrap()));
     driverControllerCommand.rightBumper().whileTrue(new StartEndCommand(() -> winch.closeTrap(), () -> winch.stopTrap()));
@@ -141,7 +141,7 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
 
-    return moveForwardCommand(false);
+    return moveForwardCommand(false, true);
     
     // // Create config for trajectory
     // TrajectoryConfig config = new TrajectoryConfig(
@@ -208,7 +208,7 @@ public class RobotContainer {
   }
 
   private Command center_Zero_Algae(){
-    return new ParallelCommandGroup(moveForwardCommand(true), 
+    return new ParallelCommandGroup(moveForwardCommand(true, true), 
     new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3)))
     .andThen(new WaitUntilCommand(elevator::atHeight))
     .andThen(new RunCommand(() -> scorer.ejectElevated(), scorer))
@@ -253,8 +253,6 @@ public class RobotContainer {
       Left
   }
 
-  
-
   public void setFieldRelativeOffset(double offset) {
     robotDrive.setFieldRelativeOffset(offset);
   }
@@ -283,16 +281,32 @@ public class RobotContainer {
     }
   }
 
-  private Command moveForwardCommand(boolean reset){
+  private Command moveForwardCommand(boolean reset, boolean brake){
       Trajectory moveForwardTraj = TrajectoryGenerator.generateTrajectory(
           new Pose2d(new Translation2d(6.7631, 4.195), Rotation2d.fromDegrees(180)),
           List.of(),
           new Pose2d(new Translation2d(6.2185, 4.195), Rotation2d.fromDegrees(180)),
           AutoConstants.kTrajConfigSlow);
+
+          SwerveControllerCommand command = new SwerveControllerCommand(
+            moveForwardTraj,
+            robotDrive::getP, 
+            DriveConstants.kDriveKinematics, 
+            new PIDController(1, 0, 0), 
+            new PIDController(1, 0, 0),
+            getThetaController(),
+            robotDrive::setModuleStates,
+            robotDrive);
+
         if (reset) {
           robotDrive.resetOdometry(moveForwardTraj.getInitialPose());
         }
-      return swerveCommand(moveForwardTraj, true);
+        if (brake) {
+          return command.andThen(() -> robotDrive.drive(0, 0, 0, true, true));
+        }
+        else{
+          return command;
+        }
   }
 
   private Command centerReef_Algae1(){

@@ -1,9 +1,6 @@
 package frc.robot.subsystems;
 
 import com.studica.frc.AHRS;
-import edu.wpi.first.wpilibj.SerialPort;
-import edu.wpi.first.wpilibj.SerialPort.Port;
-
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -15,11 +12,11 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.utils.SwerveUtils;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 // declares to be a part of the subsystem framework
 public class DriveSubsystem extends SubsystemBase {
@@ -240,6 +237,10 @@ public class DriveSubsystem extends SubsystemBase {
     // returns robot's heading in degrees (reading from gyro)
     public double getHeading() {
         return Rotation2d.fromDegrees(gyro.getAngle(/*IMUAxis.kZ */)).getDegrees();
+    }
+
+    public Rotation2d getHeadingRotation2d(){
+    return Rotation2d.fromDegrees(gyro.getAngle(/*IMUAxis.kZ*/));
     }
 
     public double getTurnState() {

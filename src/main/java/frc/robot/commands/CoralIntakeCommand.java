@@ -66,7 +66,6 @@ public class CoralIntakeCommand extends Command {
                 scorer.setScorerMaxLeft(0.0);
                 scorer.setScorerMaxRight(0.0);
                 break;
-
         }
         // else if ((!scorer.endProx) && (scorer.initProx)) {
         //     scorer.setScorerMaxLeft(0.12);

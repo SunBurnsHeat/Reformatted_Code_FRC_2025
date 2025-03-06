@@ -54,16 +54,16 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledPeriodic() {
-    LedSubsystem.setBreathingMsg();
+    // LedSubsystem.setBreathingMsg();
   }
 
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    LedSubsystem.setRedBlueMsg();
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
+      LedSubsystem.setRedBlueMsg();
       m_autonomousCommand.schedule();
     }
   }
