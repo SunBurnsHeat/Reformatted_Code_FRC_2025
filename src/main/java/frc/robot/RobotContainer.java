@@ -14,20 +14,17 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.XboxController.Button;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
-import edu.wpi.first.wpilibj2.command.WaitCommand;
-import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -41,6 +38,7 @@ import frc.robot.commands.DefaultDriveCommand;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.LedSubsystem;
 // import frc.robot.subsystems.LedSubsystem;
 import frc.robot.subsystems.ScorerSubsystem;
 import frc.robot.subsystems.WinchSubsystem;
@@ -79,8 +77,8 @@ public class RobotContainer {
     robotDrive.setDefaultCommand(new DefaultDriveCommand(robotDrive));
     // led.setDefaultCommand(new LedCycleCommand(led, scorer));
 
-    driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.setX()));
-    driverControllerCommand.start().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
+    driverControllerCommand.a().whileTrue(new RunCommand(() -> robotDrive.setX()));
+    driverControllerCommand.y().whileTrue(new RunCommand(() -> robotDrive.zeroHeading()));
 
     driverControllerCommand.leftBumper().whileTrue(new StartEndCommand(() -> winch.openTrap(), () -> winch.stopTrap()));
     driverControllerCommand.rightBumper().whileTrue(new StartEndCommand(() -> winch.closeTrap(), () -> winch.stopTrap()));
@@ -99,7 +97,18 @@ public class RobotContainer {
       () -> scorer.stopScorer()));
 
     new Trigger(this::leftTrigger).whileTrue(new CoralIntakeCommand(scorer));
-    new Trigger(this::rightTrigger).whileTrue(new StartEndCommand(() -> scorer.ejectElevated(), () -> scorer.stopScorer()));
+    // new Trigger(this::rightTrigger).whileTrue(new StartEndCommand(() -> scorer.ejectElevated(), () -> scorer.stopScorer()));
+    new Trigger(this::rightTrigger).onTrue(
+        new ConditionalCommand(
+            new SequentialCommandGroup(
+                new StartEndCommand(() -> scorer.ejectElevated(), () -> scorer.stopScorer(), scorer)
+                    .withTimeout(1.0), 
+                new InstantCommand(() -> LedSubsystem.setAllianceSolid())
+            ),
+            new InstantCommand(() -> LedSubsystem.setAllianceSolid()),
+            scorer::hasCoral
+        )
+    );
 
     new Trigger(this::R1Left).whileTrue(new StartEndCommand(() -> arm.setArmRoller(-0.40), () -> arm.setArmRoller(0)));
     new Trigger(this::R1Right).whileTrue(new StartEndCommand(() -> arm.setArmRoller(0.3), () -> arm.setArmRoller(0)));
@@ -107,6 +116,9 @@ public class RobotContainer {
     new Trigger(this::R1Up).whileTrue(new InstantCommand(() -> arm.setArmPosition(85), arm));
     new Trigger(this::R1Down).whileTrue(new InstantCommand(() -> arm.setArmPosition(15), arm));
 
+    new Trigger(elevator::atDangerHeight)
+            .onTrue(new InstantCommand(() -> LedSubsystem.setAllianceBlink()))
+            .onFalse(new InstantCommand(() -> LedSubsystem.setAllianceSolid()));
 
     coPilotControllerCommand.povUp().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3), elevator));
     coPilotControllerCommand.povDown().onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L0), elevator));
@@ -141,46 +153,51 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
 
-    return moveForwardCommand(false, true);
+    // return exampleCommand();
+    return moveForwardCommand(false, true); // might be brake as true.
     
-    // // Create config for trajectory
-    // TrajectoryConfig config = new TrajectoryConfig(
-    //     AutoConstants.kMaxSpeedMetersPerSecondStandard,
-    //     AutoConstants.kMaxAccelerationMetersPerSecondSquaredStandard)
-    //     // Add kinematics to ensure max speed is actually obeyed
-    //     .setKinematics(DriveConstants.kDriveKinematics);
+  }
 
-    // // An example trajectory to follow. All units in meters.
-    // Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-    //     // Start at the origin facing the +X direction
-    //     new Pose2d(0, 0, new Rotation2d(0)),
-    //     // Pass through these two interior waypoints, making an 's' curve path
-    //     List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-    //     // End 3 meters straight ahead of where we started, facing forward
-    //     new Pose2d(3, 0, new Rotation2d(0)),
-    //     config);
+  private Command exampleCommand(){
+        // Create config for trajectory
+    TrajectoryConfig config = new TrajectoryConfig(
+        AutoConstants.kMaxSpeedMetersPerSecondSlow/2,
+        AutoConstants.kMaxAccelerationMetersPerSecondSquaredSlow/2)
+        // Add kinematics to ensure max speed is actually obeyed
+        .setKinematics(DriveConstants.kDriveKinematics);
 
-    // var thetaController = new ProfiledPIDController(
-    //     AutoConstants.kPThetaController, 0, 0, AutoConstants.kThetaControllerConstraints);
-    // thetaController.enableContinuousInput(-Math.PI, Math.PI);
+    // An example trajectory to follow. All units in meters.
+    Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
+        // Start at the origin facing the +X direction
+        new Pose2d(0, 0, new Rotation2d(0)),
+        // Pass through these two interior waypoints, making an 's' curve path
+        List.of(new Translation2d(1, 0), new Translation2d(1.5, 0)),
+        // End 3 meters straight ahead of where we started, facing forward
+        new Pose2d(2, 0, new Rotation2d(0)),
+        config);
 
-    // SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-    //     exampleTrajectory,
-    //     robotDrive::getP, // Functional interface to feed supplier
-    //     DriveConstants.kDriveKinematics,
+    var thetaController = new ProfiledPIDController(
+        AutoConstants.kPThetaController*1.5, 0, 0, AutoConstants.kThetaControllerConstraints);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
 
-    //     // Position controllers
-    //     new PIDController(AutoConstants.kPXController, 0, 0),
-    //     new PIDController(AutoConstants.kPYController, 0, 0),
-    //     thetaController,
-    //     robotDrive::setModuleStates,
-    //     robotDrive);
+    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+        exampleTrajectory,
+        robotDrive::getP, // Functional interface to feed supplier
+        DriveConstants.kDriveKinematics,
 
-    // // Reset odometry to the starting pose of the trajectory.
-    // robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
+        // Position controllers
+        new PIDController(AutoConstants.kPXController*1, 0, 0),
+        new PIDController(AutoConstants.kPYController*1, 0, 0),
+        thetaController,
+        robotDrive::setModuleStates,
+        robotDrive);
 
-    // // Run path following command, then stop at the end.
-    // return swerveControllerCommand.andThen(() -> robotDrive.drive(0, 0, 0, false,false));
+    // Reset odometry to the starting pose of the trajectory.
+    robotDrive.resetOdometry(exampleTrajectory.getInitialPose());
+
+    // Run path following command, then stop at the end.
+    return swerveControllerCommand.andThen(() -> robotDrive.drive(0, 0, 0, false,false));
+
   }
 
   public void setSmartDashboard(){
@@ -207,30 +224,30 @@ public class RobotContainer {
     SmartDashboard.putData("Auto Angle", autoAngle);
   }
 
-  private Command center_Zero_Algae(){
-    return new ParallelCommandGroup(moveForwardCommand(true, true), 
-    new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3)))
-    .andThen(new WaitUntilCommand(elevator::atHeight))
-    .andThen(new RunCommand(() -> scorer.ejectElevated(), scorer))
-    .andThen(new ParallelRaceGroup(new WaitUntilCommand(() -> !scorer.hasCoral()), new WaitCommand(0.35)));
-  }
+  // private Command center_Zero_Algae(){
+  //   return new ParallelCommandGroup(moveForwardCommand(true, true), 
+  //   new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3)))
+  //   .andThen(new WaitUntilCommand(elevator::atHeight))
+  //   .andThen(new RunCommand(() -> scorer.ejectElevated(), scorer))
+  //   .andThen(new ParallelRaceGroup(new WaitUntilCommand(() -> !scorer.hasCoral()), new WaitCommand(0.35)));
+  // }
 
-  private Command left_Three_Coral(){
-    return leftReef_Coral1()
-    .andThen(new ParallelCommandGroup(new InstantCommand(
-      () -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3)), leftReef_Coral2()))
-    .andThen(new WaitUntilCommand(elevator::atHeight))
-    .andThen(() -> new RunCommand(() -> scorer.ejectElevated(), scorer))
-    .andThen(new ParallelRaceGroup(new WaitUntilCommand(() -> !scorer.hasCoral()), new WaitCommand(0.35)))
-    .andThen(new ParallelCommandGroup(leftReef_Coral3(), 
-      new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L0))))
-    .andThen(new ParallelCommandGroup(leftReef_Coral4(), new CoralIntakeCommand(scorer)))
-    .andThen(new ParallelRaceGroup(new WaitUntilCommand(scorer::holdongCoral), new WaitCommand(1.5)))
-    .andThen(leftReef_Coral5())
-    .andThen(new ParallelCommandGroup(leftReef_Coral6(),
-     new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3))))
-    .andThen(() -> new RunCommand(() -> scorer.ejectElevated(), scorer));
-  }
+  // private Command left_Three_Coral(){
+  //   return leftReef_Coral1()
+  //   .andThen(new ParallelCommandGroup(new InstantCommand(
+  //     () -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3)), leftReef_Coral2()))
+  //   .andThen(new WaitUntilCommand(elevator::atHeight))
+  //   .andThen(() -> new RunCommand(() -> scorer.ejectElevated(), scorer))
+  //   .andThen(new ParallelRaceGroup(new WaitUntilCommand(() -> !scorer.hasCoral()), new WaitCommand(0.35)))
+  //   .andThen(new ParallelCommandGroup(leftReef_Coral3(), 
+  //     new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L0))))
+  //   .andThen(new ParallelCommandGroup(leftReef_Coral4(), new CoralIntakeCommand(scorer)))
+  //   .andThen(new ParallelRaceGroup(new WaitUntilCommand(scorer::holdongCoral), new WaitCommand(1.5)))
+  //   .andThen(leftReef_Coral5())
+  //   .andThen(new ParallelCommandGroup(leftReef_Coral6(),
+  //    new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L3))))
+  //   .andThen(() -> new RunCommand(() -> scorer.ejectElevated(), scorer));
+  // }
 
   public enum AutoPos{
     Left, Center, Right
@@ -258,12 +275,13 @@ public class RobotContainer {
   }
 
   public ProfiledPIDController getThetaController() {
-    ProfiledPIDController thetaController = new ProfiledPIDController(1.25, 0, 0, new TrapezoidProfile.Constraints(2*Math.PI, 2*Math.PI));
-    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+    var thetaController = new ProfiledPIDController(
+        AutoConstants.kPThetaController * 1.25, 0, 0, AutoConstants.kThetaControllerConstraints);
+        thetaController.enableContinuousInput(-Math.PI, Math.PI);
     return thetaController;
   }
 
-  private Command swerveCommand(Trajectory traj, boolean brake){
+  private Command swerveCommand(Trajectory traj/* , boolean brake*/){
     SwerveControllerCommand command = new SwerveControllerCommand(
       traj,
       robotDrive::getP, 
@@ -273,19 +291,19 @@ public class RobotContainer {
       getThetaController(),
       robotDrive::setModuleStates,
       robotDrive);
-    if (brake) {
-      return command.andThen(() -> robotDrive.drive(0, 0, 0, true, true));
-    }
-    else{
+    // if (brake) {
+    //   return command.andThen(() -> robotDrive.drive(0, 0, 0, true, true));
+    // }
+    // else{
       return command;
-    }
+    // }
   }
 
-  private Command moveForwardCommand(boolean reset, boolean brake){
+  private Command moveForwardCommand(boolean reset , boolean brake){
       Trajectory moveForwardTraj = TrajectoryGenerator.generateTrajectory(
-          new Pose2d(new Translation2d(6.7631, 4.195), Rotation2d.fromDegrees(180)),
+          new Pose2d(new Translation2d(6.7631, 4.195), new Rotation2d(180)),
           List.of(),
-          new Pose2d(new Translation2d(6.2185, 4.195), Rotation2d.fromDegrees(180)),
+          new Pose2d(new Translation2d(6.2185, 4.195), new Rotation2d(180)),
           AutoConstants.kTrajConfigSlow);
 
           SwerveControllerCommand command = new SwerveControllerCommand(
@@ -309,139 +327,139 @@ public class RobotContainer {
         }
   }
 
-  private Command centerReef_Algae1(){
-    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(6.2185, 4.195), Rotation2d.fromDegrees(180)),
-      List.of(),
-      new Pose2d(new Translation2d(6.2229, 4.023), Rotation2d.fromDegrees(180)), 
-      AutoConstants.kTrajConfigSlow);
+//   private Command centerReef_Algae1(){
+//     Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(6.2185, 4.195), Rotation2d.fromDegrees(180)),
+//       List.of(),
+//       new Pose2d(new Translation2d(6.2229, 4.023), Rotation2d.fromDegrees(180)), 
+//       AutoConstants.kTrajConfigSlow);
 
-      return swerveCommand(cenTrajectory, false);
-  }
+//       return swerveCommand(cenTrajectory, false);
+//   }
 
-  private Command centereReef_Algae2(){
-    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(6.2229, 4.023), Rotation2d.fromDegrees(180)),
-      List.of(
-        /*new Pose2d(*/new Translation2d(6.3422, 2.707), /*new Rotation2d.fromDegrees(155)),*/
-        /*new Pose2d(*/new Translation2d(6.1773, 2.3361)/* , new Rotation2d.fromDegrees(140))*/
-        ),
-        new Pose2d(new Translation2d(5.394, 2.501), Rotation2d.fromDegrees(120)),
-      AutoConstants.kTrajConfigStandard);
+//   private Command centereReef_Algae2(){
+//     Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(6.2229, 4.023), Rotation2d.fromDegrees(180)),
+//       List.of(
+//         /*new Pose2d(*/new Translation2d(6.3422, 2.707), /*new Rotation2d.fromDegrees(155)),*/
+//         /*new Pose2d(*/new Translation2d(6.1773, 2.3361)/* , new Rotation2d.fromDegrees(140))*/
+//         ),
+//         new Pose2d(new Translation2d(5.394, 2.501), Rotation2d.fromDegrees(120)),
+//       AutoConstants.kTrajConfigStandard);
 
-      return swerveCommand(cenTrajectory, false);
-  }
+//       return swerveCommand(cenTrajectory, false);
+//   }
 
-  private Command centerReef_Algae3(){
-    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(5.394, 2.501), Rotation2d.fromDegrees(120)),
-      List.of(
-      new Translation2d(6.28, 3.314),
-      new Translation2d(6.7631, 4.195),
-      new Translation2d(6.218, 4.623)
-      ),
-      new Pose2d(new Translation2d(5.312, 5.448), Rotation2d.fromDegrees(250)),
-      AutoConstants.kTrajConfigStandard);
+//   private Command centerReef_Algae3(){
+//     Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(5.394, 2.501), Rotation2d.fromDegrees(120)),
+//       List.of(
+//       new Translation2d(6.28, 3.314),
+//       new Translation2d(6.7631, 4.195),
+//       new Translation2d(6.218, 4.623)
+//       ),
+//       new Pose2d(new Translation2d(5.312, 5.448), Rotation2d.fromDegrees(250)),
+//       AutoConstants.kTrajConfigStandard);
 
-      return swerveCommand(cenTrajectory, false);
-  }
+//       return swerveCommand(cenTrajectory, false);
+//   }
 
-  private Command leftReef_Coral1(){ // rush
-    Trajectory traj = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(7.593, 6.753), Rotation2d.fromDegrees(225)),
-      List.of(
-      new Translation2d(6.202, 5.501)),
-      new Pose2d(new Translation2d(5.689, 5.362), Rotation2d.fromDegrees(250)),
-      AutoConstants.kTrajConfigFast);
+//   private Command leftReef_Coral1(){ // rush
+//     Trajectory traj = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(7.593, 6.753), Rotation2d.fromDegrees(225)),
+//       List.of(
+//       new Translation2d(6.202, 5.501)),
+//       new Pose2d(new Translation2d(5.689, 5.362), Rotation2d.fromDegrees(250)),
+//       AutoConstants.kTrajConfigFast);
 
-      return swerveCommand(traj, true);
-  }
+//       return swerveCommand(traj, true);
+//   }
 
-  private Command leftReef_Coral2(){
-      Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(5.689, 5.362), Rotation2d.fromDegrees(250)),
-      List.of(),
-      new Pose2d(new Translation2d(5.477, 5.431), Rotation2d.fromDegrees(250)), 
-      AutoConstants.kTrajConfigSlow);
+//   private Command leftReef_Coral2(){
+//       Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(5.689, 5.362), Rotation2d.fromDegrees(250)),
+//       List.of(),
+//       new Pose2d(new Translation2d(5.477, 5.431), Rotation2d.fromDegrees(250)), 
+//       AutoConstants.kTrajConfigSlow);
 
-      return swerveCommand(cenTrajectory, true);
-  }
+//       return swerveCommand(cenTrajectory, true);
+//   }
 
-  private Command leftReef_Coral3(){
-    Trajectory traj = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(5.477, 5.431), Rotation2d.fromDegrees(250)),
-      List.of(),
-      new Pose2d(new Translation2d(4.977, 5.806), Rotation2d.fromDegrees(260)), 
-      AutoConstants.kTrajConfigSlow);
+//   private Command leftReef_Coral3(){
+//     Trajectory traj = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(5.477, 5.431), Rotation2d.fromDegrees(250)),
+//       List.of(),
+//       new Pose2d(new Translation2d(4.977, 5.806), Rotation2d.fromDegrees(260)), 
+//       AutoConstants.kTrajConfigSlow);
 
-      return swerveCommand(traj, false);
-  }
+//       return swerveCommand(traj, false);
+//   }
 
-  private Command leftReef_Coral4(){
-    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(4.977, 5.806), Rotation2d.fromDegrees(260)),
-      List.of(
-      new Translation2d(4.12, 6.076),
-      new Translation2d(2.8563, 6.4375)
-      ),
-      new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(310)),
-      AutoConstants.kTrajConfigFast);
+//   private Command leftReef_Coral4(){
+//     Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(4.977, 5.806), Rotation2d.fromDegrees(260)),
+//       List.of(
+//       new Translation2d(4.12, 6.076),
+//       new Translation2d(2.8563, 6.4375)
+//       ),
+//       new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(310)),
+//       AutoConstants.kTrajConfigFast);
 
-      return swerveCommand(cenTrajectory, true);
-  }
+//       return swerveCommand(cenTrajectory, true);
+//   }
 
-  private Command leftReef_Coral5(){
-    Trajectory traj = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(310)),
-      List.of(
-      new Translation2d(2.3297, 6.6179)),
-      new Pose2d(new Translation2d(3.278, 5.625), Rotation2d.fromDegrees(310)),
-      AutoConstants.kTrajConfigStandardReverse);
+//   private Command leftReef_Coral5(){
+//     Trajectory traj = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(310)),
+//       List.of(
+//       new Translation2d(2.3297, 6.6179)),
+//       new Pose2d(new Translation2d(3.278, 5.625), Rotation2d.fromDegrees(310)),
+//       AutoConstants.kTrajConfigStandardReverse);
 
-      return swerveCommand(traj, false);
-  }
+//       return swerveCommand(traj, false);
+//   }
 
-  private Command leftReef_Coral6(){
-    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(3.278, 5.625), Rotation2d.fromDegrees(310)),
-      List.of(),
-      new Pose2d(new Translation2d(3.4731, 5.4295), Rotation2d.fromDegrees(310)),
-      AutoConstants.kTrajConfigSlowReverse);
+//   private Command leftReef_Coral6(){
+//     Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(3.278, 5.625), Rotation2d.fromDegrees(310)),
+//       List.of(),
+//       new Pose2d(new Translation2d(3.4731, 5.4295), Rotation2d.fromDegrees(310)),
+//       AutoConstants.kTrajConfigSlowReverse);
 
-      return swerveCommand(cenTrajectory, true);
-  }
+//       return swerveCommand(cenTrajectory, true);
+//   }
 
-  private Command leftReef_Coral7(){
-    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(3.4731, 5.4295), Rotation2d.fromDegrees(310)),
-      List.of(
-      new Translation2d(2.616, 6.362)),
-      new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(300)),
-      AutoConstants.kTrajConfigStandard);
+//   private Command leftReef_Coral7(){
+//     Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(3.4731, 5.4295), Rotation2d.fromDegrees(310)),
+//       List.of(
+//       new Translation2d(2.616, 6.362)),
+//       new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(300)),
+//       AutoConstants.kTrajConfigStandard);
 
-      return swerveCommand(cenTrajectory, true);
-  }
+//       return swerveCommand(cenTrajectory, true);
+//   }
 
-  private Command leftReef_Coral8(){
-    Trajectory traj = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(310)),
-      List.of(
-      new Translation2d(2.3297, 6.6179)
-      ),
-      new Pose2d(new Translation2d(3.5633, 5.715), Rotation2d.fromDegrees(310)),
-      AutoConstants.kTrajConfigStandardReverse);
+//   private Command leftReef_Coral8(){
+//     Trajectory traj = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(1.352, 6.738), Rotation2d.fromDegrees(310)),
+//       List.of(
+//       new Translation2d(2.3297, 6.6179)
+//       ),
+//       new Pose2d(new Translation2d(3.5633, 5.715), Rotation2d.fromDegrees(310)),
+//       AutoConstants.kTrajConfigStandardReverse);
 
-      return swerveCommand(traj, false);
-  }
+//       return swerveCommand(traj, false);
+//   }
 
-  private Command leftReef_Coral9(){
-    Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(3.5633, 5.715), Rotation2d.fromDegrees(310)),
-      List.of(),
-      new Pose2d(new Translation2d(3.750, 5.595), Rotation2d.fromDegrees(310)), 
-      AutoConstants.kTrajConfigSlowReverse);
+//   private Command leftReef_Coral9(){
+//     Trajectory cenTrajectory = TrajectoryGenerator.generateTrajectory(
+//       new Pose2d(new Translation2d(3.5633, 5.715), Rotation2d.fromDegrees(310)),
+//       List.of(),
+//       new Pose2d(new Translation2d(3.750, 5.595), Rotation2d.fromDegrees(310)), 
+//       AutoConstants.kTrajConfigSlowReverse);
 
-      return swerveCommand(cenTrajectory, true);
-  }
+//       return swerveCommand(cenTrajectory, true);
+//   }
 
 }

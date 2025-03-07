@@ -116,11 +116,11 @@ public class ScorerSubsystem extends SubsystemBase{
     }
 
     public boolean ongoingCoral(){
-        return (initProx && !endProx);
+        return (initProx && endProx);
     }
 
     public boolean hasCoral(){
-        return (initProx && endProx);
+        return (initProx && !endProx);
     }
  
 
@@ -203,8 +203,8 @@ public class ScorerSubsystem extends SubsystemBase{
         SmartDashboard.putBoolean("init Prox State", initProx);
         SmartDashboard.putBoolean("end Prox State", endProx);
 
-        if (!hasCoral()) {
-            LedSubsystem.setAllianceSolid();
-        }
+        // if (!hasCoral()) {
+        //     LedSubsystem.setAllianceSolid();
+        // }
     }
 }

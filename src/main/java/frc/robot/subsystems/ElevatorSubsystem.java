@@ -120,6 +120,10 @@ public class ElevatorSubsystem extends SubsystemBase {
         targetPosition -= 1.5;
     }
 
+    public boolean atDangerHeight(){
+        return getPosition() > ElevatorConstants.kElevatorPosition_L2;
+    }
+
     @Override
     public void periodic(){
         // // double elevatorTarget = elevatorSetpoint.getDouble(0.0);

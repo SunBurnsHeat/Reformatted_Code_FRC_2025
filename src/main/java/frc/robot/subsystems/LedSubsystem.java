@@ -177,7 +177,8 @@ public class LedSubsystem extends SubsystemBase {
             private static AddressableLEDBuffer scroll_buffer;
             private static AddressableLEDBuffer breath_buffer;
             private static AddressableLEDBuffer alliance_buffer;
-
+            private static AddressableLEDBuffer autonomous_buffer;
+            private static AddressableLEDBuffer blink_alliance_buffer;
 
             private static LEDPattern scrollBase = LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kCoral, Color.kWheat);
             private static LEDPattern allianceLED;
@@ -207,6 +208,8 @@ public class LedSubsystem extends SubsystemBase {
                 alliance_buffer = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
                 led_green = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
                 led_yellow = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
+                autonomous_buffer = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
+                blink_alliance_buffer = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
                 // led_dynamic_msg = new AddressableLEDBuffer(LEDConstants.ledBufferLength); // specific blinking message
         
                 // initial message for led buffers
@@ -275,10 +278,36 @@ public class LedSubsystem extends SubsystemBase {
                 }
             }
 
+            public static void setAllianceBlink() {
+                // Use allianceLED and apply a fast blink (0.2s cycle = 5 Hz)
+                LEDPattern blinkPattern = allianceLED.blink(Second.of(0.2)).atBrightness(Percent.of(100));
+                
+                // Apply to the blink buffer and update LED strip
+                blinkPattern.applyTo(blink_alliance_buffer);
+                ledBar.setData(blink_alliance_buffer);
+            }
+
             public static void setAllianceSolid(){
                 allianceLED.applyTo(alliance_buffer);
                 ledBar.setData(alliance_buffer);
                 ledBar.setData(alliance_buffer);
+            }
+            public static void setAutonomousPattern() {
+                // Base layer: Dim gold background
+                LEDPattern baseLayer = LEDPattern.solid(Color.kGold).atBrightness(Percent.of(20));
+
+                // Chase layer: Bright purple pulses moving across the strip
+                LEDPattern chaseLayer = LEDPattern.solid(Color.kPurple)
+                    .breathe(Second.of(1)) // Pulse every 1 second
+                    .scrollAtRelativeSpeed(Percent.per(Second).of(50)) // Move at 50% speed
+                    .atBrightness(Percent.of(80)); // Bright pulses
+
+                // Combine layers: Overlay chase on base
+                LEDPattern autonomousPattern = chaseLayer.overlayOn(baseLayer);
+
+                // Apply to buffer and update LED strip
+                autonomousPattern.applyTo(autonomous_buffer);
+                ledBar.setData(autonomous_buffer);
             }
         
             public static void scrollMsg(){
@@ -290,7 +319,7 @@ public class LedSubsystem extends SubsystemBase {
             }
         
             public static void setBreathingMsg(){
-                LEDPattern breathing = allianceLED.breathe(Second.of(2.5)).atBrightness(Percent.of(50));
+                LEDPattern breathing = allianceLED.breathe(Second.of(7)).atBrightness(Percent.of(30));
         
                 breathing.applyTo(breath_buffer);
         

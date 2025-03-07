@@ -58,7 +58,7 @@ public final class Constants {
         public static final boolean kTurningEncoderInverted = true;
 
         public static final double kDrivingMotorFreeSpeedRps = NeoVortexMotorConstants.kFreeSpeedRpm / 60;
-        public static final double kWheelDiameterMeters = 0.0762;
+        public static final double kWheelDiameterMeters = 0.0762*2.8/3.3;
         public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
 
         // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15
@@ -214,7 +214,7 @@ public final class Constants {
         public static final double kIdlePosition = -90; 
 
         public static final double kIdleSpeed = -0.25;
-        public static final double kWinchSpeed = 0.55;
+        public static final double kWinchSpeed = 0.90;
 
         public static final double trapOpenSpeed = - 0.3;
         public static final double trapCloseSpeed = 0.45;
