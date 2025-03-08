@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.LEDConstants;
@@ -180,7 +181,7 @@ public class LedSubsystem extends SubsystemBase {
             private static AddressableLEDBuffer autonomous_buffer;
             private static AddressableLEDBuffer blink_alliance_buffer;
 
-            private static LEDPattern scrollBase = LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kCoral, Color.kWheat);
+            private static LEDPattern scrollBase = LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kOrange, Color.kLime);
             private static LEDPattern allianceLED;
         
         
@@ -294,10 +295,10 @@ public class LedSubsystem extends SubsystemBase {
             }
             public static void setAutonomousPattern() {
                 // Base layer: Dim gold background
-                LEDPattern baseLayer = LEDPattern.solid(Color.kGold).atBrightness(Percent.of(20));
+                LEDPattern baseLayer = LEDPattern.solid(Color.kRed).atBrightness(Percent.of(20));
 
                 // Chase layer: Bright purple pulses moving across the strip
-                LEDPattern chaseLayer = LEDPattern.solid(Color.kPurple)
+                LEDPattern chaseLayer = LEDPattern.solid(Color.kBlue)
                     .breathe(Second.of(1)) // Pulse every 1 second
                     .scrollAtRelativeSpeed(Percent.per(Second).of(50)) // Move at 50% speed
                     .atBrightness(Percent.of(80)); // Bright pulses
@@ -311,7 +312,7 @@ public class LedSubsystem extends SubsystemBase {
             }
         
             public static void scrollMsg(){
-                LEDPattern pattern = scrollBase.scrollAtRelativeSpeed(Percent.per(Second).of(25));
+                LEDPattern pattern = scrollBase.scrollAtRelativeSpeed(Percent.per(Second).of(5));
         
                 pattern.applyTo(scroll_buffer);
         
@@ -319,7 +320,8 @@ public class LedSubsystem extends SubsystemBase {
             }
         
             public static void setBreathingMsg(){
-                LEDPattern breathing = allianceLED.breathe(Second.of(7)).atBrightness(Percent.of(30));
+                LEDPattern breathing = allianceLED.breathe(Second.of(
+                .5)).atBrightness(Percent.of(30));
         
                 breathing.applyTo(breath_buffer);
         
@@ -330,6 +332,45 @@ public class LedSubsystem extends SubsystemBase {
                 LEDPattern rainbow = LEDPattern.rainbow(255, 128).atBrightness(Percent.of(100));
                 rainbow.applyTo(rainbow_buffer);
                 ledBar.setData(rainbow_buffer);
+            }
+
+            public static void setPoliceLights() {
+                // Static variables to maintain state
+                double lastChangeTime = 0;
+                boolean isFirstPhase = true;
+                final double BLINK_INTERVAL = 0.15; // 150ms per phase (~6.67 Hz cycle)
+                final int HALF_LENGTH = LEDConstants.ledLength / 2;
+
+                // Get current time
+                double currentTime = Timer.getFPGATimestamp();
+
+                // Switch phases
+                if (currentTime - lastChangeTime >= BLINK_INTERVAL) {
+                    isFirstPhase = !isFirstPhase;
+                    lastChangeTime = currentTime;
+                }
+
+                // Set alternating patterns
+                for (int i = 0; i < LEDConstants.ledLength; i++) {
+                    if (isFirstPhase) {
+                        // First half red, second half blue
+                        if (i < HALF_LENGTH) {
+                            blink_alliance_buffer.setLED(i, Color.kRed);
+                        } else {
+                            blink_alliance_buffer.setLED(i, Color.kBlue);
+                        }
+                    } else {
+                        // First half blue, second half red
+                        if (i < HALF_LENGTH) {
+                            blink_alliance_buffer.setLED(i, Color.kBlue);
+                        } else {
+                            blink_alliance_buffer.setLED(i, Color.kRed);
+                        }
+                    }
+                }
+
+                // Update LED strip
+                ledBar.setData(blink_alliance_buffer);
             }
         
             // public static void elevatorMsg(){

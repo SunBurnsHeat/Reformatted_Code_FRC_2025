@@ -111,7 +111,7 @@ public class ScorerSubsystem extends SubsystemBase{
         return scorerRightEncoder.getVelocity();
     }
 
-    public boolean holdongCoral(){
+    public boolean holdingCoral(){
         return (!initProx && endProx);
     }
 
@@ -121,6 +121,10 @@ public class ScorerSubsystem extends SubsystemBase{
 
     public boolean hasCoral(){
         return (initProx && !endProx);
+    }
+
+    public boolean notHasCoral(){
+        return (!initProx && !endProx);
     }
  
 

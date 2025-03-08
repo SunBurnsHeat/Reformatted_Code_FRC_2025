@@ -114,7 +114,7 @@ public final class Constants {
             .setKinematics(DriveConstants.kDriveKinematics);
 
         public static final TrajectoryConfig kTrajConfigSlow = new TrajectoryConfig(
-            AutoConstants.kMaxSpeedMetersPerSecondSlow, AutoConstants.kMaxAccelerationMetersPerSecondSquaredSlow)
+            AutoConstants.kMaxSpeedMetersPerSecondSlow/2, AutoConstants.kMaxAccelerationMetersPerSecondSquaredSlow/2)
             .setKinematics(DriveConstants.kDriveKinematics);
 
         public static final TrajectoryConfig kTrajConfigStandardReverse = kTrajConfigStandard.setReversed(true);
@@ -183,7 +183,7 @@ public final class Constants {
         public static final double kArmPositionDeadband = 01;
         public static final double kArmRollerSpeedDeadband = 100;
 
-        public static final double kArmForwardSoftLimit = 120;
+        public static final double kArmForwardSoftLimit = 195;
         public static final double kArmReverseSoftLimit = 10;
 
         public static final double kFullExtendPosition = 190;

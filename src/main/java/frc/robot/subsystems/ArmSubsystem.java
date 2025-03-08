@@ -30,7 +30,8 @@ public class ArmSubsystem extends SubsystemBase{
     private final SparkClosedLoopController armMotorController;
     private final SparkClosedLoopController rollerMotorController;
 
-    private Double targetPosition = 15.0;
+    private Double targetPosition = 195.0;
+    private double targetSetpoint = 0.0;
 
 
     public ArmSubsystem(){
@@ -51,8 +52,9 @@ public class ArmSubsystem extends SubsystemBase{
         // armFF = new ArmFeedforward(ArmConstants.kS, ArmConstants.kG, ArmConstants.kV);
     }
 
-    public void setArmRoller(double rollerSetpoint){ // speed is in RPM
-        rollerMotorController.setReference(rollerSetpoint, ControlType.kDutyCycle);
+    public void setArmRoller(double rollerSetpoint){ 
+        // rollerMotorController.setReference(rollerSetpoint, ControlType.kDutyCycle);
+        targetSetpoint = rollerSetpoint;
     }
 
     public void setArmPosition(double position){ // position is in degrees
@@ -81,7 +83,7 @@ public class ArmSubsystem extends SubsystemBase{
     }
 
     public void incremPos(){
-        if (targetPosition == ArmConstants.kFullExtendPosition) {
+        if (targetPosition > ArmConstants.kFullExtendPosition) {
             targetPosition = targetPosition;
         }
         else{
@@ -90,7 +92,7 @@ public class ArmSubsystem extends SubsystemBase{
     }
 
     public void decremPos(){
-        if (targetPosition == 10) {
+        if (targetPosition < ArmConstants.kArmReverseSoftLimit) {
             targetPosition = targetPosition;
         }
         else{
@@ -116,6 +118,8 @@ public class ArmSubsystem extends SubsystemBase{
         // else{
         //     armMotorController.setReference(0, ControlType.kDutyCycle);
         // }
+
+        rollerMotorController.setReference(targetSetpoint, ControlType.kDutyCycle);
 
         SmartDashboard.putNumber("Arm Output", armMax.getAppliedOutput());
         SmartDashboard.putNumber("Arm Target Position", targetPosition);
