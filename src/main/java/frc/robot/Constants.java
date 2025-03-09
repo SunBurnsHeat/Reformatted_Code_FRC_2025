@@ -4,8 +4,12 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.RobotConfig;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
@@ -59,6 +63,7 @@ public final class Constants {
 
         public static final double kDrivingMotorFreeSpeedRps = NeoVortexMotorConstants.kFreeSpeedRpm / 60;
         public static final double kWheelDiameterMeters = 0.0762*2.8/3.3;
+        public static final double kWheelRadiusMeters = kWheelDiameterMeters/2;
         public static final double kWheelCircumferenceMeters = kWheelDiameterMeters * Math.PI;
 
         // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15
@@ -85,6 +90,26 @@ public final class Constants {
     }
 
     public static final class AutoConstants {
+
+            public static final RobotConfig ROBOT_CONFIG = new RobotConfig(
+                74.088,         // Mass from "robotMass"
+                6.883, // MOI from "robotMOI"
+                new ModuleConfig(
+                ModuleConstants.kWheelRadiusMeters,              // Motor type from "driveMotorType"
+                NeoVortexMotorConstants.kFreeSpeedRpm,                // Gearing ratio from "driveGearing"
+                1.3,                // Wheel radius (m) from "driveWheelRadius"
+                DCMotor.getNeoVortex(1), // Max velocity (m/s)
+                40,                 // Current limit (amps) from "driveCurrentLimit"
+                4                  // Coefficient of friction from "wheelCOF"
+                ),                       // Module config
+                new Translation2d[] {
+                    new Translation2d(0.273, 0.273),  // FL
+                    new Translation2d(0.273, -0.273), // FR
+                    new Translation2d(-0.273, 0.273), // BL
+                    new Translation2d(-0.273, -0.273) // BR
+                }                       // Module offsets
+            );
+
         public static final double kMaxSpeedMetersPerSecondStandard = 2.25;
         public static final double kMaxAccelerationMetersPerSecondSquaredStandard = 1.75;
 

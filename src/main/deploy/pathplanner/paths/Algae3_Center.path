@@ -1,0 +1,113 @@
+{
+  "version": "2025.0",
+  "waypoints": [
+    {
+      "anchor": {
+        "x": 5.2845,
+        "y": 2.6502499999999998
+      },
+      "prevControl": null,
+      "nextControl": {
+        "x": 5.984659028713725,
+        "y": 2.9069993828261125
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 7.02975,
+        "y": 3.9372499999999997
+      },
+      "prevControl": {
+        "x": 7.011443842055021,
+        "y": 3.6844640240543813
+      },
+      "nextControl": {
+        "x": 7.122240435468549,
+        "y": 5.2144314307417385
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 6.30825,
+        "y": 6.17
+      },
+      "prevControl": {
+        "x": 6.745590855487756,
+        "y": 6.060682771252758
+      },
+      "nextControl": {
+        "x": 5.8124102767214465,
+        "y": 6.29393953999829
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.2845,
+        "y": 5.399749999999999
+      },
+      "prevControl": {
+        "x": 5.153290399918213,
+        "y": 5.186949528087041
+      },
+      "nextControl": null,
+      "isLocked": false,
+      "linkedName": null
+    }
+  ],
+  "rotationTargets": [],
+  "constraintZones": [
+    {
+      "name": "Constraints Zone",
+      "minWaypointRelativePos": 2.243525179856106,
+      "maxWaypointRelativePos": 3.0,
+      "constraints": {
+        "maxVelocity": 1.5,
+        "maxAcceleration": 1.25,
+        "maxAngularVelocity": 540.0,
+        "maxAngularAcceleration": 720.0,
+        "nominalVoltage": 12.0,
+        "unlimited": false
+      }
+    }
+  ],
+  "pointTowardsZones": [],
+  "eventMarkers": [
+    {
+      "name": "elevatorDownL0",
+      "waypointRelativePos": 0.2899280575539386,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "armUpL2",
+      "waypointRelativePos": 2.2305755395682034,
+      "endWaypointRelativePos": null,
+      "command": null
+    }
+  ],
+  "globalConstraints": {
+    "maxVelocity": 3.0,
+    "maxAcceleration": 3.0,
+    "maxAngularVelocity": 540.0,
+    "maxAngularAcceleration": 720.0,
+    "nominalVoltage": 12.0,
+    "unlimited": false
+  },
+  "goalEndState": {
+    "velocity": 0,
+    "rotation": -120.41108126712538
+  },
+  "reversed": false,
+  "folder": null,
+  "idealStartingState": {
+    "velocity": 0,
+    "rotation": 120.2564371635293
+  },
+  "useDefaultConstraints": true
+}

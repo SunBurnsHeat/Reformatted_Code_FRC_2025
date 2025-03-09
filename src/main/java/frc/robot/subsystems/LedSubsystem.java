@@ -312,7 +312,7 @@ public class LedSubsystem extends SubsystemBase {
             }
         
             public static void scrollMsg(){
-                LEDPattern pattern = scrollBase.scrollAtRelativeSpeed(Percent.per(Second).of(5));
+                LEDPattern pattern = scrollBase.scrollAtRelativeSpeed(Percent.per(Second).of(50));
         
                 pattern.applyTo(scroll_buffer);
         

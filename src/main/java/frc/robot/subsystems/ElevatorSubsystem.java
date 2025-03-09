@@ -1,7 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.ClosedLoopSlot;
+// import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
@@ -9,15 +9,15 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
-import edu.wpi.first.math.controller.ElevatorFeedforward;
+// import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.wpilibj.XboxController;
+// import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Configs;
 import frc.robot.Constants.ElevatorConstants;
-import frc.robot.Constants.OIConstants;
+// import frc.robot.Constants.OIConstants;
 
 public class ElevatorSubsystem extends SubsystemBase {
     private final SparkMax leadElevatorMax;
@@ -27,7 +27,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     // private final XboxController controller = new XboxController(OIConstants.kCoPilotControllerPort);
 
     private final ProfiledPIDController leadElevatorProfiledPIDController;
-    private final ElevatorFeedforward elevatorFF;
+    // private final ElevatorFeedforward elevatorFF;
 
     private SparkClosedLoopController leadElevatorController;
 
@@ -56,7 +56,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         leadElevatorProfiledPIDController = new ProfiledPIDController(
             ElevatorConstants.kP, ElevatorConstants.kI, ElevatorConstants.kD, ElevatorConstants.elevConstraints, ElevatorConstants.kDt);
-        elevatorFF = new ElevatorFeedforward(ElevatorConstants.kS, ElevatorConstants.kG, ElevatorConstants.kV);
+        // elevatorFF = new ElevatorFeedforward(ElevatorConstants.kS, ElevatorConstants.kG, ElevatorConstants.kV);
 
         leadElevatorProfiledPIDController.setTolerance(ElevatorConstants.kElevatorHeightDeadbandInches);
     }

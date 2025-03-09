@@ -101,6 +101,18 @@ public class MAXSwereveModule {
         targetstate = correctState;
     }
 
+    // New method for SysID: Apply raw voltage to drive motor
+    public void setDriveVoltage(double voltage) {
+        kDrivingFlex.setVoltage(voltage); // Bypasses PID
+        // Lock steering at 0 degrees (relative to chassis offset)
+        kTurningClosedLoopController.setReference(chassisoffset, ControlType.kPosition);
+    }
+
+    // New method for SysID: Get applied voltage
+    public double getDriveVoltage() {
+        return kDrivingFlex.getAppliedOutput() * kDrivingFlex.getBusVoltage();
+    }
+
     // resets the drive encoder position to zero
     public void resetEncoder() {
         kDriveEncoder.setPosition(0);

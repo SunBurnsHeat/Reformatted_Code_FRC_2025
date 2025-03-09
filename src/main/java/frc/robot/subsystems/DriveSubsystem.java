@@ -1,8 +1,12 @@
 package frc.robot.subsystems;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -12,6 +16,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.WPIUtilJNI;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AutoConstants;
@@ -37,7 +43,36 @@ public class DriveSubsystem extends SubsystemBase {
 
     private double fieldRelativeOffset = 0;
 
+    private final Field2d field = new Field2d();
     
+    public DriveSubsystem(){
+
+    // Configure AutoBuilder last
+    AutoBuilder.configure(
+            this::getP, // Robot pose supplier
+            this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
+            this::getRobotRelativeSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            (speeds, feedforwards) -> driveRobotRelative(speeds), // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also optionally outputs individual module feedforwards
+            new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic drive trains
+                    new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+                    new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+            ),
+            AutoConstants.ROBOT_CONFIG, // The robot configuration
+            () -> {
+              // Boolean supplier that controls when the path will be mirrored for the red alliance
+              // This will flip the path being followed to the red side of the field.
+              // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+              var alliance = DriverStation.getAlliance();
+              if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+              }
+              return false;
+            },
+            this // Reference to this subsystem to set requirements
+    );
+
+    }
     // movement variables
     private double currentRotation = 0;
     private double currentDirection = 0;
@@ -59,6 +94,54 @@ public class DriveSubsystem extends SubsystemBase {
                     kBLeft.getPosition(), 
                     kBRight.getPosition()
             });
+    
+      // Odometry class for tracking robot pose
+    SwerveDrivePoseEstimator est_Odometry = new SwerveDrivePoseEstimator(
+      DriveConstants.kDriveKinematics,
+      gyro.getRotation2d(),
+      new SwerveModulePosition[] {
+          kFLeft.getPosition(),
+          kFRight.getPosition(),
+          kBLeft.getPosition(),
+          kBRight.getPosition()
+      },
+      
+      new Pose2d());
+
+
+    // // SysID routine
+    // private final SysIdRoutine sysIdRoutine = new SysIdRoutine(
+    //     new SysIdRoutine.Config(), // Default config; adjust timeout or ramp rate if needed
+    //     new SysIdRoutine.Mechanism(
+    //         (voltage) -> {
+    //             // Apply voltage to all drive motors, lock steering at 0
+    //             kFLeft.setDriveVoltage(voltage.doubleValue());
+    //             kFRight.setDriveVoltage(voltage.doubleValue());
+    //             kBLeft.setDriveVoltage(voltage.doubleValue());
+    //             kBRight.setDriveVoltage(voltage.doubleValue());
+    //         },
+    //         (log) -> {
+    //             // Log data for each module
+    //             log.motor("front-left")
+    //                 .voltage(kFLeft.getDriveVoltage())
+    //                 .linearPosition(kFLeft.getPosition().distanceMeters)
+    //                 .linearVelocity(kFLeft.getState().speedMetersPerSecond);
+    //             log.motor("front-right")
+    //                 .voltage(kFRight.getDriveVoltage())
+    //                 .linearPosition(kFRight.getPosition().distanceMeters)
+    //                 .linearVelocity(kFRight.getState().speedMetersPerSecond);
+    //             log.motor("back-left")
+    //                 .voltage(kBLeft.getDriveVoltage())
+    //                 .linearPosition(kBLeft.getPosition().distanceMeters)
+    //                 .linearVelocity(kBLeft.getState().speedMetersPerSecond);
+    //             log.motor("back-right")
+    //                 .voltage(kBRight.getDriveVoltage())
+    //                 .linearPosition(kBRight.getPosition().distanceMeters)
+    //                 .linearVoltage(kBRight.getState().speedMetersPerSecond);
+    //         },
+    //         this
+    //     )
+    // );
 
     // adjusting the defaults for the robot's periodic framework
     @Override
@@ -72,6 +155,9 @@ public class DriveSubsystem extends SubsystemBase {
                         kBLeft.getPosition(),
                         kBRight.getPosition()
                 });
+
+        field.setRobotPose(est_Odometry.getEstimatedPosition());    
+        
         SmartDashboard.putString("odometry", odometry.getPoseMeters().toString());
         SmartDashboard.putNumber("gyro angle", gyro.getAngle());
     }
@@ -239,10 +325,6 @@ public class DriveSubsystem extends SubsystemBase {
         return Rotation2d.fromDegrees(gyro.getAngle(/*IMUAxis.kZ */)).getDegrees();
     }
 
-    public Rotation2d getHeadingRotation2d(){
-    return Rotation2d.fromDegrees(gyro.getAngle(/*IMUAxis.kZ*/));
-    }
-
     public double getTurnState() {
         return gyro.getRate();
     }
@@ -250,4 +332,51 @@ public class DriveSubsystem extends SubsystemBase {
     public void setFieldRelativeOffset(double offset) {
         this.fieldRelativeOffset = offset;
     }
+
+    // // SysID test commands
+    // public Command sysIdQuasistatic(Direction direction) {
+    //     return sysIdRoutine.quasistatic(direction);
+    // }
+
+    // public Command sysIdDynamic(Direction direction) {
+    //     return sysIdRoutine.dynamic(direction);
+    // }
+
+    // Helper method to get module positions (for odometry or external use)
+    public SwerveModulePosition[] getModulePositions() {
+        return new SwerveModulePosition[] {
+            kFLeft.getPosition(),
+            kFRight.getPosition(),
+            kBLeft.getPosition(),
+            kBRight.getPosition()
+        };
+    }
+
+    public ChassisSpeeds getRobotRelativeSpeeds() {
+        // Get the current states of all swerve modules
+        SwerveModuleState[] currentStates = new SwerveModuleState[] {
+            kFLeft.getState(),
+            kFRight.getState(),
+            kBLeft.getState(),
+            kBRight.getState()
+        };
+    
+        // Convert module states to robot-relative ChassisSpeeds using kinematics
+        return DriveConstants.kDriveKinematics.toChassisSpeeds(currentStates);
+    }
+
+    public void driveRobotRelative(ChassisSpeeds speeds) {
+        // Convert robot-relative ChassisSpeeds to SwerveModuleState
+        SwerveModuleState[] moduleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(speeds);
+    
+        // Ensure no module exceeds the max speed
+        SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, DriveConstants.kMaxSpeedMetersPerSec);
+    
+        // Set the module states
+        kFLeft.setState(moduleStates[0]);
+        kFRight.setState(moduleStates[1]);
+        kBLeft.setState(moduleStates[2]);
+        kBRight.setState(moduleStates[3]);
+    }
+
 }
