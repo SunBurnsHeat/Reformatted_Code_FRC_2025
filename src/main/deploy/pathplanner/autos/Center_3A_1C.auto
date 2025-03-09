@@ -13,7 +13,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 0.75
           }
         },
         {
@@ -23,9 +23,22 @@
           }
         },
         {
-          "type": "wait",
+          "type": "parallel",
           "data": {
-            "waitTime": 0.5
+            "commands": [
+              {
+                "type": "wait",
+                "data": {
+                  "waitTime": 1.0
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "ejectCoral"
+                }
+              }
+            ]
           }
         },
         {
@@ -37,13 +50,25 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 0.5
+            "waitTime": 0.75
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "Algae3_Center"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 0.75
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Algae4_Center"
           }
         }
       ]

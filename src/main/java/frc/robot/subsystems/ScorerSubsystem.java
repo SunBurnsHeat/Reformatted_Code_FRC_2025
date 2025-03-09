@@ -206,6 +206,7 @@ public class ScorerSubsystem extends SubsystemBase{
         // SmartDashboard.putNumber("right scorer output", scorerRightMax.getAppliedOutput());
         SmartDashboard.putBoolean("init Prox State", initProx);
         SmartDashboard.putBoolean("end Prox State", endProx);
+        SmartDashboard.putBoolean("Not_Has_Cor", notHasCoral());
 
         // if (!hasCoral()) {
         //     LedSubsystem.setAllianceSolid();

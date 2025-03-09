@@ -3,41 +3,57 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.87925,
-        "y": 4.1907499999999995
+        "x": 5.80125,
+        "y": 4.03475
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.2821094902643555,
-        "y": 3.9214491635266038
+        "x": 6.204109490264355,
+        "y": 3.765449163526604
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.8347500000000005,
-        "y": 4.03475
+        "x": 6.600750000000001,
+        "y": 3.4984999999999995
       },
       "prevControl": {
-        "x": 7.083430753869091,
-        "y": 4.060399223284561
+        "x": 6.2815282145706774,
+        "y": 3.5084756807946658
       },
       "nextControl": {
-        "x": 6.556845323658593,
-        "y": 4.006086587233217
+        "x": 6.912750000000001,
+        "y": 3.4887499999999996
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.064500000000001,
+        "x": 6.7860000000000005,
         "y": 4.03475
       },
       "prevControl": {
-        "x": 5.74037208663278,
-        "y": 4.053593562109313
+        "x": 6.961500000000001,
+        "y": 3.7422499999999994
+      },
+      "nextControl": {
+        "x": 6.647927371384684,
+        "y": 4.2648710476921945
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.80125,
+        "y": 4.2005
+      },
+      "prevControl": {
+        "x": 6.044451553671341,
+        "y": 4.142594868173489
       },
       "nextControl": null,
       "isLocked": false,
@@ -49,14 +65,14 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "elevatorDownL1",
-      "waypointRelativePos": 0.12302158273381694,
+      "name": "armDown+eject",
+      "waypointRelativePos": 0.7284172661870173,
       "endWaypointRelativePos": null,
       "command": null
     },
     {
-      "name": "armOut",
-      "waypointRelativePos": 0.7762589928057505,
+      "name": "elevatorUpL2",
+      "waypointRelativePos": 2.3600719424459355,
       "endWaypointRelativePos": null,
       "command": null
     }
@@ -74,7 +90,7 @@
     "rotation": -178.45184230102205
   },
   "reversed": false,
-  "folder": null,
+  "folder": "Center",
   "idealStartingState": {
     "velocity": 0,
     "rotation": 180.0

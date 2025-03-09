@@ -51,6 +51,7 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit() {
     LedSubsystem.startLedBar();
+    LedSubsystem.setCosmicBinaryStorm();
   }
 
   @Override
@@ -61,11 +62,11 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    LedSubsystem.scrollMsg();
+    // LedSubsystem.setPoliceLights();
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
-      
+      LedSubsystem.setCosmicBinaryStorm();
       m_autonomousCommand.schedule();
     }
   }

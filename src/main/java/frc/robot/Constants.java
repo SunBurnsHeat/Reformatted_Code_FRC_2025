@@ -92,7 +92,7 @@ public final class Constants {
     public static final class AutoConstants {
 
             public static final RobotConfig ROBOT_CONFIG = new RobotConfig(
-                74.088,         // Mass from "robotMass"
+                70.088,         // Mass from "robotMass"
                 6.883, // MOI from "robotMOI"
                 new ModuleConfig(
                 ModuleConstants.kWheelRadiusMeters,              // Motor type from "driveMotorType"
@@ -103,10 +103,10 @@ public final class Constants {
                 4                  // Coefficient of friction from "wheelCOF"
                 ),                       // Module config
                 new Translation2d[] {
-                    new Translation2d(0.273, 0.273),  // FL
-                    new Translation2d(0.273, -0.273), // FR
-                    new Translation2d(-0.273, 0.273), // BL
-                    new Translation2d(-0.273, -0.273) // BR
+                    new Translation2d(0.279, 0.279),  // FL
+                    new Translation2d(0.279, -0.279), // FR
+                    new Translation2d(-0.279, 0.279), // BL
+                    new Translation2d(-0.279, -0.279) // BR
                 }                       // Module offsets
             );
 

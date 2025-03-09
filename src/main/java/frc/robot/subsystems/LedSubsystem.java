@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Microseconds;
 import static edu.wpi.first.units.Units.Percent;
 import static edu.wpi.first.units.Units.Second;
 
@@ -7,6 +8,7 @@ import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.LEDPattern;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -179,11 +181,19 @@ public class LedSubsystem extends SubsystemBase {
             private static AddressableLEDBuffer breath_buffer;
             private static AddressableLEDBuffer alliance_buffer;
             private static AddressableLEDBuffer autonomous_buffer;
+            private static AddressableLEDBuffer policeLed_buffer;
             private static AddressableLEDBuffer blink_alliance_buffer;
+            private static AddressableLEDBuffer checkerBoard_buffer;
+            private static AddressableLEDBuffer counterChase_buffer;
+            private static AddressableLEDBuffer cosmic_buffer;
 
             private static LEDPattern scrollBase = LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kOrange, Color.kLime);
             private static LEDPattern allianceLED;
         
+            private static double policeLastChangeTime = 0;
+            private static boolean policeIsFirstPhase = true;
+            private static final double POLICE_BLINK_INTERVAL = 0.15; // 150ms per phase (~6.67 Hz cycle)
+            private static final int HALF_LENGTH = LEDConstants.ledLength / 2;
         
             // private static int dynamicCount = 0; // counter for dynamic messages
             // private static int rainbowFirstPixelHue = 0; // tracks the hue for the first pixel in the rainbow effect
@@ -210,7 +220,11 @@ public class LedSubsystem extends SubsystemBase {
                 led_green = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
                 led_yellow = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
                 autonomous_buffer = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
+                policeLed_buffer = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
                 blink_alliance_buffer = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
+                checkerBoard_buffer = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
+                counterChase_buffer = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
+                cosmic_buffer = new AddressableLEDBuffer(LEDConstants.ledBufferLength);
                 // led_dynamic_msg = new AddressableLEDBuffer(LEDConstants.ledBufferLength); // specific blinking message
         
                 // initial message for led buffers
@@ -321,7 +335,7 @@ public class LedSubsystem extends SubsystemBase {
         
             public static void setBreathingMsg(){
                 LEDPattern breathing = allianceLED.breathe(Second.of(
-                .5)).atBrightness(Percent.of(30));
+                2)).atBrightness(Percent.of(50));
         
                 breathing.applyTo(breath_buffer);
         
@@ -335,43 +349,167 @@ public class LedSubsystem extends SubsystemBase {
             }
 
             public static void setPoliceLights() {
-                // Static variables to maintain state
-                double lastChangeTime = 0;
-                boolean isFirstPhase = true;
-                final double BLINK_INTERVAL = 0.15; // 150ms per phase (~6.67 Hz cycle)
-                final int HALF_LENGTH = LEDConstants.ledLength / 2;
-
-                // Get current time
                 double currentTime = Timer.getFPGATimestamp();
 
-                // Switch phases
-                if (currentTime - lastChangeTime >= BLINK_INTERVAL) {
-                    isFirstPhase = !isFirstPhase;
-                    lastChangeTime = currentTime;
+                // Switch phases if enough time has passed
+                if (currentTime - policeLastChangeTime >= POLICE_BLINK_INTERVAL) {
+                    policeIsFirstPhase = !policeIsFirstPhase;
+                    policeLastChangeTime = currentTime;
+                    // Optional: Add debug output to verify phase switching
+                    System.out.println("Phase switched to: " + (policeIsFirstPhase ? "First" : "Second") + " at time: " + currentTime);
                 }
 
-                // Set alternating patterns
+                // Set alternating patterns for each half
                 for (int i = 0; i < LEDConstants.ledLength; i++) {
-                    if (isFirstPhase) {
-                        // First half red, second half blue
+                    if (policeIsFirstPhase) {
+                        // First phase: First half red, second half blue
                         if (i < HALF_LENGTH) {
-                            blink_alliance_buffer.setLED(i, Color.kRed);
+                            policeLed_buffer.setLED(i, Color.kRed);
                         } else {
-                            blink_alliance_buffer.setLED(i, Color.kBlue);
+                            policeLed_buffer.setLED(i, Color.kBlue);
                         }
                     } else {
-                        // First half blue, second half red
+                        // Second phase: First half blue, second half red
                         if (i < HALF_LENGTH) {
-                            blink_alliance_buffer.setLED(i, Color.kBlue);
+                            policeLed_buffer.setLED(i, Color.kBlue);
                         } else {
-                            blink_alliance_buffer.setLED(i, Color.kRed);
+                            policeLed_buffer.setLED(i, Color.kRed);
                         }
                     }
                 }
 
                 // Update LED strip
-                ledBar.setData(blink_alliance_buffer);
+                ledBar.setData(policeLed_buffer);
             }
+            
+            public static void setBinaryCheckerboard() {
+                for (int i = 0; i < LEDConstants.ledLength; i++) {
+                    // Use bitwise AND with 1 to alternate every other LED
+                    if ((i & 1) == 0) {
+                        checkerBoard_buffer.setLED(i, Color.kPurple); // Even indices
+                    } else {
+                        checkerBoard_buffer.setLED(i, Color.kBlack);  // Odd indices
+                    }
+                }
+                ledBar.setData(checkerBoard_buffer);
+            }
+
+            private static int binaryCounter = 0;
+
+            public static void setBinaryCounterChase() {
+                for (int i = 0; i < LEDConstants.ledLength; i++) {
+                    // Use bitwise AND with a shifted counter
+                    if (((i + binaryCounter) & 7) < 4) { // Mask with 7 (111 in binary), threshold at 4
+                        counterChase_buffer.setLED(i, Color.kCyan);
+                    } else {
+                        counterChase_buffer.setLED(i, Color.kBlack);
+                    }
+                }
+                ledBar.setData(counterChase_buffer);
+
+                // Increment counter for animation (update every ~20ms in periodic())
+                binaryCounter = (binaryCounter + 1) % LEDConstants.ledLength;
+            }
+
+            public static void setCosmicBinaryStorm() {
+                // Base layer: Scrolling rainbow with bitwise hue shift
+                LEDPattern rainbowBase = (reader, writer) -> {
+                    int bufLen = reader.getLength();
+                    double time = Timer.getFPGATimestamp();
+                    int shift = (int) (time * 20) % 32; // Fast shift for dynamic effect
+                    for (int i = 0; i < bufLen; i++) {
+                        // Bitwise XOR for hue variation
+                        int hue = (((i << 2) ^ shift) & 0xFF) % 180; // Shift left, XOR with time, mask to 0-255, fit to 0-180
+                        writer.setHSV(i, hue, 255, 128); // Full saturation, half brightness
+                    }
+                };
+                LEDPattern scrollingRainbow = rainbowBase.scrollAtRelativeSpeed(Percent.per(Second).of(50));
+
+                // Middle layer: Breathing pattern with bitwise brightness control
+                LEDPattern breathingLayer = (reader, writer) -> {
+                    double time = Timer.getFPGATimestamp();
+                    long periodMicros = (long) Second.of(1.5).in(Microseconds); // 1.5s breathing cycle
+                    double t = (RobotController.getTime() % periodMicros) / (double) periodMicros;
+                    double dim = (Math.cos(t * 2 * Math.PI) + 1) / 2.0; // Cosine fade from 0 to 1
+
+                    for (int i = 0; i < reader.getLength(); i++) {
+                        // Use bitwise AND to apply breathing only to every 4th LED
+                        if ((i & 3) == 0) {
+                            int r = (int) (reader.getRed(i) * dim);
+                            int g = (int) (reader.getGreen(i) * dim);
+                            int b = (int) (reader.getBlue(i) * dim);
+                            writer.setRGB(i, r, g, b);
+                        } else {
+                            writer.setRGB(i, reader.getRed(i), reader.getGreen(i), reader.getBlue(i));
+                        }
+                    }
+                };
+
+                // Top layer: Twinkling mask with bitwise randomness
+                LEDPattern twinkleMask = (reader, writer) -> {
+                    double time = Timer.getFPGATimestamp();
+                    int timeSeed = (int) (time * 30) % 64; // Fast twinkle cycle
+                    for (int i = 0; i < reader.getLength(); i++) {
+                        // Bitwise OR and threshold for twinkling
+                        if (((i & 0xF) | timeSeed) > 50) {
+                            writer.setLED(i, Color.kWhite); // Twinkle on
+                        } else {
+                            writer.setLED(i, Color.kBlack); // Twinkle off (show base pattern)
+                        }
+                    }
+                };
+
+                // Combine layers: Rainbow scrolls, breathing pulses, twinkling overlays
+                LEDPattern cosmicPattern = scrollingRainbow
+                    .breathe(Second.of(1.5)) // Add global breathing effect
+                    .overlayOn(breathingLayer) // Add selective breathing
+                    .mask(twinkleMask) // Apply twinkling mask
+                    .mapIndex((bufLen, index) -> {
+                        // Zigzag effect: Alternate direction every 10 LEDs
+                        int segment = index / 10;
+                        int localIndex = index % 10;
+                        return (segment & 1) == 0 ? index : (segment * 10 + (9 - localIndex));
+                    })
+                    .atBrightness(Percent.of(80)); // Slightly dim for visual comfort
+
+                // Apply to buffer and update LED strip
+                cosmicPattern.applyTo(cosmic_buffer); // Using policeLed_buffer as a spare
+                ledBar.setData(cosmic_buffer);
+            }
+
+
+            // public static void setPoliceLights() {
+                // // Get current time
+                // double currentTime = Timer.getFPGATimestamp();
+
+                // // Switch phases if enough time has passed
+                // if (currentTime - policeLastChangeTime >= POLICE_BLINK_INTERVAL) {
+                //     policeIsFirstPhase = !policeIsFirstPhase;
+                //     policeLastChangeTime = currentTime;
+                // }
+
+                // // Set alternating patterns
+                // for (int i = 0; i < LEDConstants.ledLength; i++) {
+                //     if (policeIsFirstPhase) {
+                //         // First half red, second half blue
+                //         if (i < HALF_LENGTH) {
+                //             policeLed_buffer.setLED(i, Color.kRed);
+                //         } else {
+                //             policeLed_buffer.setLED(i, Color.kBlue);
+                //         }
+                //     } else {
+                //         // First half blue, second half red
+                //         if (i < HALF_LENGTH) {
+                //             policeLed_buffer.setLED(i, Color.kBlue);
+                //         } else {
+                //             policeLed_buffer.setLED(i, Color.kRed);
+                //         }
+                //     }
+                // }
+
+                // // Update LED strip
+                // ledBar.setData(policeLed_buffer);
+            // }
         
             // public static void elevatorMsg(){
             //     LEDPattern elevatorGradient = LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kTurquoise, Color.kNavy);

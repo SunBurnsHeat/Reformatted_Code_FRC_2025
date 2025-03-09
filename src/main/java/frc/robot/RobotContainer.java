@@ -4,9 +4,8 @@
 
 package frc.robot;
 
-// import java.util.List;
-
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.events.EventTrigger;
 
 // import edu.wpi.first.math.controller.PIDController;
@@ -25,11 +24,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
-import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
-// import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -79,17 +76,46 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
 
-    new EventTrigger("elevatorUp").onTrue(
-      new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L2), elevator));
+    /*---------------------------------------------Only For Center Auton----------------------------------------------- */
 
-    new EventTrigger("ejectCoral").onTrue(new ConditionalCommand(new InstantCommand(() -> scorer.ejectElevated(), scorer), 
-      new InstantCommand(() -> scorer.stop()), scorer::holdingCoral));
-
-    new EventTrigger("elevatorDownL1").onTrue(
+    new EventTrigger("elevatorUpL1").onTrue(
       new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L1), elevator));
 
     new EventTrigger("armOut").onTrue(
       new InstantCommand(() -> arm.setArmPosition(90), arm).andThen(() -> arm.setArmRoller(-.4), arm));
+
+    new EventTrigger("armDown+eject").onTrue(
+      new InstantCommand(() -> arm.setArmPosition(15), arm).andThen(() -> arm.setArmRoller(.3))
+    );
+
+    new EventTrigger("elevatorUpL2").onTrue(
+      new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L2))
+    );
+
+    NamedCommands.registerCommand("ejectCoral", new InstantCommand(() -> scorer.ejectElevated(), scorer)
+      .andThen(new WaitUntilCommand(scorer::notHasCoral)).andThen(new InstantCommand(() -> scorer.stop(), scorer)));
+    
+    new EventTrigger("elevatoDownL0").onTrue(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L0), elevator));
+
+    new EventTrigger("elevatorUpL2+armOut").onTrue(
+      new ParallelCommandGroup(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L2), elevator),
+      new InstantCommand(() -> arm.setArmPosition(90), arm).andThen(() -> arm.setArmRoller(-.4), arm)));
+
+    new EventTrigger("elevatorDownL0+armDown").onTrue(
+      new ParallelCommandGroup(new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L0), elevator),
+      new InstantCommand(() -> arm.setArmPosition(15), arm).andThen(() -> arm.setArmRoller(-.4), arm)));
+
+    NamedCommands.registerCommand("ejectAlgae", new InstantCommand(() -> arm.setArmRoller(.3), arm).
+      andThen(new WaitCommand(1)).andThen(new InstantCommand(() -> arm.setArmRoller(0), arm)));
+    
+
+    /*---------------------------------------------Only For Side Auton----------------------------------------------- */
+    new EventTrigger("initiateIntake").onTrue(new CoralIntakeCommand(scorer));
+    
+    new EventTrigger("elevatorDownL1").onTrue(
+      new InstantCommand(() -> elevator.setPosition(ElevatorConstants.kElevatorPosition_L1), elevator));
+
+    
 
     new EventTrigger("armDown").onTrue(
       new InstantCommand(() -> arm.setArmPosition(25), arm).andThen(() -> arm.setArmRoller(.3), arm));
@@ -155,7 +181,7 @@ public class RobotContainer {
     new Trigger(this::R1Left).whileTrue(new StartEndCommand(() -> arm.setArmRoller(-0.40), () -> arm.setArmRoller(0)));
     new Trigger(this::R1Right).whileTrue(new StartEndCommand(() -> arm.setArmRoller(0.3), () -> arm.setArmRoller(0)));
 
-    new Trigger(this::R1Up).whileTrue(new InstantCommand(() -> arm.setArmPosition(85), arm));
+    new Trigger(this::R1Up).whileTrue(new InstantCommand(() -> arm.setArmPosition(90), arm));
     new Trigger(this::R1Down).whileTrue(new InstantCommand(() -> arm.setArmPosition(15), arm));
 
     new Trigger(elevator::atDangerHeight)

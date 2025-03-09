@@ -1,16 +1,13 @@
 package frc.robot.commands;
 
-import org.photonvision.targeting.PhotonTrackedTarget;
-
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.VisionSubsystem;
 
 public class DefaultDriveCommand extends Command{
 
@@ -20,10 +17,10 @@ public class DefaultDriveCommand extends Command{
     // the controller's object
     private XboxController driverController = new XboxController(OIConstants.kDriverControllerPort);
 
-    // Vision alignment constants
-    private static final double VISION_TURN_KP = 0.025;
-    private static final int TARGET_FIDUCIAL_ID = 7;
-    private static final double AIMING_DEADBAND = 2.0;
+    // // Vision alignment constants
+    // private static final double VISION_TURN_KP = 0.025;
+    // private static final int TARGET_FIDUCIAL_ID = 7;
+    // private static final double AIMING_DEADBAND = 2.0;
     
     // the class's constructor
     public DefaultDriveCommand(DriveSubsystem subsystem/* *, VisionSubsystem vision*/){
@@ -57,6 +54,8 @@ public class DefaultDriveCommand extends Command{
         povMultiplier = 1;  // normal mode (100% speed) for POV control
         }
 
+        /*------------------------------PhotonVision Block------------------------------------ */
+
         // // Manual swerve inputs for photon steering
         // double forward = -multiplier * MathUtil.applyDeadband(driverController.getLeftY(), 0.015) * DriveConstants.kMaxSpeedMetersPerSec;
         // double strafe = -multiplier * MathUtil.applyDeadband(driverController.getLeftX(), 0.015) * DriveConstants.kMaxSpeedMetersPerSec;
@@ -88,6 +87,8 @@ public class DefaultDriveCommand extends Command{
         //         }
         //     }
         // }
+
+        /*------------------------------PhotonVision Block------------------------------------ */
 
 
         // // when Button A is pressed, ....
@@ -135,6 +136,66 @@ public class DefaultDriveCommand extends Command{
         //     // turn the lime_light led off 
         //     LimelightHelpers.setLEDMode_ForceOff("limelight");
         // }
+
+        /*------------------------------PhotonVision Block------------------------------------ */
+
+        // // POV (D-pad) control overrides joystick if active
+        // if (driverController.getPOV() != -1) {
+        //     switch (driverController.getPOV()) {
+        //         case 0:   // Up
+        //             forward = povMultiplier * 0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             strafe = 0;
+        //             rotation = povMultiplier * fineTurn * DriveConstants.kMaxAngSpeedRadiansPerSec;
+        //             break;
+        //         case 45:  // Up-right
+        //             forward = povMultiplier * 0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             strafe = povMultiplier * -0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             rotation = povMultiplier * fineTurn * DriveConstants.kMaxAngSpeedRadiansPerSec;
+        //             break;
+        //         case 90:  // Right
+        //             forward = 0;
+        //             strafe = povMultiplier * -0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             rotation = povMultiplier * fineTurn * DriveConstants.kMaxAngSpeedRadiansPerSec;
+        //             break;
+        //         case 135: // Down-right
+        //             forward = povMultiplier * -0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             strafe = povMultiplier * -0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             rotation = povMultiplier * fineTurn * DriveConstants.kMaxAngSpeedRadiansPerSec;
+        //             break;
+        //         case 180: // Down
+        //             forward = povMultiplier * -0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             strafe = 0;
+        //             rotation = povMultiplier * fineTurn * DriveConstants.kMaxAngSpeedRadiansPerSec;
+        //             break;
+        //         case 225: // Down-left
+        //             forward = povMultiplier * -0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             strafe = povMultiplier * 0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             rotation = povMultiplier * fineTurn * DriveConstants.kMaxAngSpeedRadiansPerSec;
+        //             break;
+        //         case 270: // Left
+        //             forward = 0;
+        //             strafe = povMultiplier * 0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             rotation = povMultiplier * fineTurn * DriveConstants.kMaxAngSpeedRadiansPerSec;
+        //             break;
+        //         case 315: // Up-left
+        //             forward = povMultiplier * 0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             strafe = povMultiplier * 0.25 * DriveConstants.kMaxSpeedMetersPerSec;
+        //             rotation = povMultiplier * fineTurn * DriveConstants.kMaxAngSpeedRadiansPerSec;
+        //             break;
+        //     }
+        // } else if (fineTurn != 0 && !targetVisible) {
+        //     // Apply fine turn if no POV or vision alignment is active
+        //     rotation = povMultiplier * fineTurn * DriveConstants.kMaxAngSpeedRadiansPerSec;
+        // }
+
+        // // Command the swerve drivetrain
+        // driveSubsystem.drive(forward, strafe, rotation, true, true);
+
+        // // Debug info
+        // SmartDashboard.putBoolean("Vision Target Visible", targetVisible);
+        // SmartDashboard.putNumber("Target Yaw", targetYaw);
+
+        /*------------------------------PhotonVision Block------------------------------------ */
 
         // if no D-pad direction pressed, ....
         if(driverController.getPOV() == -1){
