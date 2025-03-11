@@ -30,7 +30,7 @@ public class ArmSubsystem extends SubsystemBase{
     private final SparkClosedLoopController armMotorController;
     private final SparkClosedLoopController rollerMotorController;
 
-    private Double targetPosition = 195.0;
+    private Double targetPosition = 180.0;
     private double targetSetpoint = 0.0;
 
 

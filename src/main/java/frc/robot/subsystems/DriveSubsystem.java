@@ -342,6 +342,10 @@ public class DriveSubsystem extends SubsystemBase {
     //     return sysIdRoutine.dynamic(direction);
     // }
 
+    public Rotation2d getHeadingRotation2d(){
+        return gyro.getRotation2d();
+    }
+
     // Helper method to get module positions (for odometry or external use)
     public SwerveModulePosition[] getModulePositions() {
         return new SwerveModulePosition[] {

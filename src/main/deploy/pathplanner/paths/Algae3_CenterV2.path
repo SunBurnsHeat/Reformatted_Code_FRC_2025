@@ -3,25 +3,41 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.29425,
-        "y": 5.08775
+        "x": 5.9818647540983605,
+        "y": 0.5665471311475403
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.825550042132667,
-        "y": 5.808812159438812
+        "x": 5.9798180034247315,
+        "y": 2.0968316271520147
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 1.21875,
-        "y": 7.05725
+        "x": 6.221618852459016,
+        "y": 5.145850409836064
       },
       "prevControl": {
-        "x": 1.906923464037233,
-        "y": 6.729680090892545
+        "x": 6.793325466873753,
+        "y": 4.604512928117226
+      },
+      "nextControl": {
+        "x": 5.899992832004045,
+        "y": 5.450391612576182
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.166700819672132,
+        "y": 5.145850409836064
+      },
+      "prevControl": {
+        "x": 5.499876991941137,
+        "y": 5.186572762402931
       },
       "nextControl": null,
       "isLocked": false,
@@ -33,14 +49,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "elevatorDownL0",
-      "waypointRelativePos": 0.09892086330934671,
-      "endWaypointRelativePos": null,
-      "command": null
-    },
-    {
-      "name": "initiateIntake",
-      "waypointRelativePos": 0.6301050175029215,
+      "name": "elevatorUpL2Algae",
+      "waypointRelativePos": 0.8176638176638157,
       "endWaypointRelativePos": null,
       "command": null
     }
@@ -55,13 +65,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -52.52382043863857
+    "rotation": -119.89890183861469
   },
   "reversed": false,
-  "folder": "Left",
+  "folder": "Center",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -120.57922687248904
+    "rotation": -90.0
   },
   "useDefaultConstraints": true
 }

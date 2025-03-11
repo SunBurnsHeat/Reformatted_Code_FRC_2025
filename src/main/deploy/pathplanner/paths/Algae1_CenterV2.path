@@ -3,25 +3,41 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.605,
-        "y": 6.716
+        "x": 5.814036885245901,
+        "y": 4.1748463114754095
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.376973356896522,
-        "y": 5.846173868708538
+        "x": 7.217778557208105,
+        "y": 3.673915907489757
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.2845,
-        "y": 5.077999999999999
+        "x": 7.01280737704918,
+        "y": 2.8921618852459017
       },
       "prevControl": {
-        "x": 5.4918235160620155,
-        "y": 5.2177031126628295
+        "x": 7.140677742936123,
+        "y": 3.106985462927541
+      },
+      "nextControl": {
+        "x": 6.657484693716655,
+        "y": 2.295215989803464
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 5.130737704918032,
+        "y": 2.8921618852459017
+      },
+      "prevControl": {
+        "x": 5.378371196571694,
+        "y": 2.926478846233379
       },
       "nextControl": null,
       "isLocked": false,
@@ -32,11 +48,11 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0.9003597122302145,
-      "maxWaypointRelativePos": 1.0,
+      "minWaypointRelativePos": 1.5698005698005673,
+      "maxWaypointRelativePos": 2.0,
       "constraints": {
-        "maxVelocity": 1.75,
-        "maxAcceleration": 1.5,
+        "maxVelocity": 2.0,
+        "maxAcceleration": 1.25,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -47,8 +63,14 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "elevatorDownL1",
-      "waypointRelativePos": 0.6514388489208683,
+      "name": "elevatorDownL0",
+      "waypointRelativePos": 0.02754036087369183,
+      "endWaypointRelativePos": null,
+      "command": null
+    },
+    {
+      "name": "elevatorUpL2Algae+armDown",
+      "waypointRelativePos": 1.459639126305802,
       "endWaypointRelativePos": null,
       "command": null
     }
@@ -63,13 +85,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -118.68614757373932
+    "rotation": 119.57783868126124
   },
   "reversed": false,
-  "folder": "Left",
+  "folder": "Center",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -135.00000000000009
+    "rotation": 180.0
   },
   "useDefaultConstraints": true
 }
