@@ -7,6 +7,7 @@ package frc.robot;
 import com.pathplanner.lib.config.ModuleConfig;
 import com.pathplanner.lib.config.RobotConfig;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -188,8 +189,8 @@ public final class Constants {
         public static final double kElevatorHeightDeadbandInches = 0.35;
 
         public static final double kElevatorPosition_L0 = 1.25;
-        public static final double kElevatorPosition_L1 = 10;
-        public static final double kElevatorPosition_L2 = 25;
+        public static final double kElevatorPosition_L1 = 9;
+        public static final double kElevatorPosition_L2 = 24;
         public static final double kElevatorPosition_L3 = 47.5;
     }
 
@@ -208,8 +209,8 @@ public final class Constants {
         public static final double kArmPositionDeadband = 01;
         public static final double kArmRollerSpeedDeadband = 100;
 
-        public static final double kArmForwardSoftLimit = 195;
-        public static final double kArmReverseSoftLimit = 10;
+        public static final double kArmForwardSoftLimit = 190;
+        public static final double kArmReverseSoftLimit = 14;
 
         public static final double kFullExtendPosition = 90;
         public static final double kStowPosition = 20;
@@ -243,5 +244,22 @@ public final class Constants {
 
         public static final double trapOpenSpeed = - 0.3;
         public static final double trapCloseSpeed = 0.45;
+    }
+
+    public static final class VisionConstants {
+        public static final double cameraXOffsetB = 9; // x (forward), y (left/right)
+        public static final double cameraYOffsetB = 10.5;
+        public static final double cameraHeightB = 8.5; // z (height) in meters
+        public static final double cameraYawOffsetB = 0 ;
+        public static final double cameraPitchB = 0; // Pitch angle in degrees
+
+        public static final double cameraXOffsetG = 0; // x (forward), y (left/right)
+        public static final double cameraYOffsetG = 0;
+        public static final double cameraHeightG = 0; // z (height) in meters
+        public static final double cameraYawOffsetG = 0 ;
+        public static final double cameraPitchG = 0; // Pitch angle in degrees
+
+        public static final double leftAlignRangeLeftInterval = -9;
+        public static final double leftAlignRangeRightInterval = -11;
     }
 }

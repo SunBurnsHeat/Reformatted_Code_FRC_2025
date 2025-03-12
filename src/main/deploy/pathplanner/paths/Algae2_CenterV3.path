@@ -3,57 +3,41 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 7.16625,
-        "y": 4.03475
+        "x": 5.791500000000001,
+        "y": 4.0249999999999995
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.3377415270506745,
-        "y": 4.018638212359841
+        "x": 5.8225615571372416,
+        "y": 3.7769371457307437
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 5.82075,
-        "y": 4.03475
+        "x": 6.207972430993334,
+        "y": 2.6681611062381503
       },
       "prevControl": {
-        "x": 6.28155737704918,
-        "y": 4.019006147540983
+        "x": 6.533115435333386,
+        "y": 3.0292077981839185
       },
       "nextControl": {
-        "x": 5.5708957851130405,
-        "y": 4.043286469013655
+        "x": 5.924411111300558,
+        "y": 2.353287727225573
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.257581967213115,
-        "y": 4.2005
+        "x": 5.141327954078252,
+        "y": 2.903443442396659
       },
       "prevControl": {
-        "x": 6.007627719825892,
-        "y": 4.195717300648497
-      },
-      "nextControl": {
-        "x": 6.507536214600338,
-        "y": 4.2052826993515025
-      },
-      "isLocked": false,
-      "linkedName": null
-    },
-    {
-      "anchor": {
-        "x": 5.82075,
-        "y": 4.2005
-      },
-      "prevControl": {
-        "x": 6.209631147540984,
-        "y": 4.186834016393442
+        "x": 5.389168756406046,
+        "y": 2.8706572150821956
       },
       "nextControl": null,
       "isLocked": false,
@@ -64,8 +48,8 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0,
-      "maxWaypointRelativePos": 3.0,
+      "minWaypointRelativePos": 1.5187050359711785,
+      "maxWaypointRelativePos": 2.0,
       "constraints": {
         "maxVelocity": 1.5,
         "maxAcceleration": 1.0,
@@ -79,26 +63,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "shootAlgae",
-      "waypointRelativePos": 0.18453237410071177,
-      "endWaypointRelativePos": null,
-      "command": null
-    },
-    {
-      "name": "wait",
-      "waypointRelativePos": 1.0612535612535692,
-      "endWaypointRelativePos": null,
-      "command": null
-    },
-    {
-      "name": "elevatorUpL2",
-      "waypointRelativePos": 1.539928057553976,
-      "endWaypointRelativePos": null,
-      "command": null
-    },
-    {
-      "name": "keepOutAlgae",
-      "waypointRelativePos": 1.5442446043165505,
+      "name": "elevatorUpL2Algae+armDown",
+      "waypointRelativePos": 0,
       "endWaypointRelativePos": null,
       "command": null
     }
@@ -113,7 +79,7 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 119.49789252153772
   },
   "reversed": false,
   "folder": "Center",

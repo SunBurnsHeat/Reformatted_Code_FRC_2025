@@ -121,7 +121,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public boolean atDangerHeight(){
-        return getPosition() > ElevatorConstants.kElevatorPosition_L2;
+        return getPosition() > ElevatorConstants.kElevatorPosition_L2*.99;
     }
 
     @Override

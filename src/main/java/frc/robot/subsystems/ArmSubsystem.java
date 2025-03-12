@@ -83,7 +83,7 @@ public class ArmSubsystem extends SubsystemBase{
     }
 
     public void incremPos(){
-        if (targetPosition > ArmConstants.kFullExtendPosition) {
+        if (targetPosition > ArmConstants.kArmForwardSoftLimit) {
             targetPosition = targetPosition;
         }
         else{

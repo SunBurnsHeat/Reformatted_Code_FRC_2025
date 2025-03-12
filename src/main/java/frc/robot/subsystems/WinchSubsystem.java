@@ -18,9 +18,10 @@ public class WinchSubsystem extends SubsystemBase{
     private final SparkMax winchMax;
     private final SparkMax trapMax;
 
+    public static int trapCounter;
+
     private final RelativeEncoder winchEncoder;
 
-    public static boolean trappable;
     
     private final XboxController controller = new XboxController(OIConstants.kCoPilotControllerPort);
 
@@ -33,8 +34,8 @@ public class WinchSubsystem extends SubsystemBase{
 
         winchMax.configure(WinchConfigs.winchMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         winchEncoder.setPosition(0);
-
-        trappable = false;
+        
+        trapCounter = 0;
     }
 
     public void setWinch(double setPoint){
@@ -47,11 +48,13 @@ public class WinchSubsystem extends SubsystemBase{
 
     @Override
     public void periodic() {
-        if(Math.abs(controller.getLeftY()) < 0.015) {
-            setWinch(0.0);
-        }
-        else {
-            setWinch(-controller.getLeftY()*WinchConstants.kWinchSpeed);
+        if (trapCounter > 0) {
+            if(Math.abs(controller.getLeftY()) < 0.015) {
+                setWinch(0.0);
+            }
+            else {
+                setWinch(-controller.getLeftY()*WinchConstants.kWinchSpeed);
+            }
         }
 
         SmartDashboard.putNumber("Winch Pos", getPosition());

@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.130737704918032,
-        "y": 2.916137295081967
+        "x": 7.595250000000001,
+        "y": 6.72575
       },
       "prevControl": null,
       "nextControl": {
-        "x": 5.68217213114754,
-        "y": 2.220850409836065
+        "x": 6.524153158309046,
+        "y": 5.978097407277366
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 6.017827868852459,
-        "y": 0.5425717213114762
+        "x": 5.25525,
+        "y": 5.067275
       },
       "prevControl": {
-        "x": 5.885963114754098,
-        "y": 1.777305327868853
+        "x": 6.084288339577169,
+        "y": 5.6371769054110805
       },
       "nextControl": null,
       "isLocked": false,
@@ -32,11 +32,11 @@
   "constraintZones": [
     {
       "name": "Constraints Zone",
-      "minWaypointRelativePos": 0,
+      "minWaypointRelativePos": 0.5521582733812773,
       "maxWaypointRelativePos": 1.0,
       "constraints": {
-        "maxVelocity": 1.5,
-        "maxAcceleration": 1.25,
+        "maxVelocity": 1.4,
+        "maxAcceleration": 1.0,
         "maxAngularVelocity": 540.0,
         "maxAngularAcceleration": 720.0,
         "nominalVoltage": 12.0,
@@ -47,14 +47,8 @@
   "pointTowardsZones": [],
   "eventMarkers": [
     {
-      "name": "elevatorDownL0+armHold",
-      "waypointRelativePos": 0.08594491927825079,
-      "endWaypointRelativePos": null,
-      "command": null
-    },
-    {
-      "name": "armDown",
-      "waypointRelativePos": 0.7431149097815762,
+      "name": "elevatorUpL3",
+      "waypointRelativePos": 0.18669064748200284,
       "endWaypointRelativePos": null,
       "command": null
     }
@@ -69,13 +63,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": -119.60445074600503
   },
   "reversed": false,
-  "folder": "Center",
+  "folder": "Left",
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 121.18497465873847
+    "rotation": -133.78112476486865
   },
   "useDefaultConstraints": true
 }
