@@ -47,6 +47,7 @@ import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LedSubsystem;
 // import frc.robot.subsystems.LedSubsystem;
 import frc.robot.subsystems.ScorerSubsystem;
+import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.WinchSubsystem;
 // import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
@@ -63,6 +64,7 @@ public class RobotContainer {
   private final ElevatorSubsystem elevator = new ElevatorSubsystem();
   private final WinchSubsystem winch = new WinchSubsystem();
   private final ScorerSubsystem scorer = new ScorerSubsystem();
+  private final VisionSubsystem vision = new VisionSubsystem();
   private final ArmSubsystem arm = new ArmSubsystem();
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
@@ -181,7 +183,7 @@ public class RobotContainer {
   
   private void configureBindings() {
     // elevator.setDefaultCommand(new DefaultElevatorCommand(elevator));
-    robotDrive.setDefaultCommand(new DefaultDriveCommand(robotDrive));
+    robotDrive.setDefaultCommand(new DefaultDriveCommand(robotDrive, vision));
     // led.setDefaultCommand(new LedCycleCommand(led, scorer));
 
     // driverControllerCommand.a().whileTrue(new RunCommand(() -> robotDrive.setX()));

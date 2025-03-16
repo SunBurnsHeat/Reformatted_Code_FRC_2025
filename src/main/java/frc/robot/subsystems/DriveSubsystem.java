@@ -6,6 +6,10 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
+import edu.wpi.first.math.MatBuilder;
+import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -15,6 +19,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.util.WPIUtilJNI;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -95,7 +101,7 @@ public class DriveSubsystem extends SubsystemBase {
                     kBRight.getPosition()
             });
     
-      // Odometry class for tracking robot pose
+    // Odometry class for tracking robot pose
     SwerveDrivePoseEstimator est_Odometry = new SwerveDrivePoseEstimator(
       DriveConstants.kDriveKinematics,
       gyro.getRotation2d(),
@@ -155,8 +161,19 @@ public class DriveSubsystem extends SubsystemBase {
                         kBLeft.getPosition(),
                         kBRight.getPosition()
                 });
+        
+        // Update pose estimator with gyro and module positions
+        est_Odometry.update(
+            Rotation2d.fromDegrees(-gyro.getAngle()),
+            new SwerveModulePosition[] {
+                kFLeft.getPosition(),
+                kFRight.getPosition(),
+                kBLeft.getPosition(),
+                kBRight.getPosition()
+            }
+        );
 
-        field.setRobotPose(est_Odometry.getEstimatedPosition());    
+        field.setRobotPose(est_Odometry.getEstimatedPosition());
         
         SmartDashboard.putString("odometry", odometry.getPoseMeters().toString());
         SmartDashboard.putNumber("gyro angle", gyro.getAngle());
@@ -165,6 +182,23 @@ public class DriveSubsystem extends SubsystemBase {
     // returns the current position of the robot as a 'Pose2d' object
     public Pose2d getP() {
         return odometry.getPoseMeters();
+    }
+
+    // Method to fuse vision data (call this from AlignToTagCommand)
+    // public void addVisionMeasurement(Pose2d visionPose, double timestamp) {
+    //     est_Odometry.addVisionMeasurement(
+    //         visionPose,
+    //         timestamp,
+    //         new MatBuilder<N3, N1>(Nat.N3(), Nat.N1()).fill(0.02, 0.02, 0.01) // Vision trust (x, y, theta std devs)
+    //     );
+    // }
+    public void addVisionMeasurement(Pose2d visionPose, double timestamp) {
+        Vector<N3> stdDevs = VecBuilder.fill(0.02, 0.02, 0.01); // Vision trust (x, y, theta std devs)
+        est_Odometry.addVisionMeasurement(visionPose, timestamp, stdDevs);
+    }
+
+    public Pose2d getEstPose2d(){
+        return est_Odometry.getEstimatedPosition();
     }
 
     // resets the odometry by utilizing the current gyro angle and module positions

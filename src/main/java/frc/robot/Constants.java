@@ -245,21 +245,4 @@ public final class Constants {
         public static final double trapOpenSpeed = - 0.3;
         public static final double trapCloseSpeed = 0.45;
     }
-
-    public static final class VisionConstants {
-        public static final double cameraXOffsetB = 9; // x (forward), y (left/right)
-        public static final double cameraYOffsetB = 10.5;
-        public static final double cameraHeightB = 8.5; // z (height) in meters
-        public static final double cameraYawOffsetB = 0 ;
-        public static final double cameraPitchB = 0; // Pitch angle in degrees
-
-        public static final double cameraXOffsetG = 0; // x (forward), y (left/right)
-        public static final double cameraYOffsetG = 0;
-        public static final double cameraHeightG = 0; // z (height) in meters
-        public static final double cameraYawOffsetG = 0 ;
-        public static final double cameraPitchG = 0; // Pitch angle in degrees
-
-        public static final double leftAlignRangeLeftInterval = -9;
-        public static final double leftAlignRangeRightInterval = -11;
-    }
 }
