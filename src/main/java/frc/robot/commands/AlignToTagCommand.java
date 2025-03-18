@@ -34,7 +34,7 @@ public class AlignToTagCommand extends Command {
     // Camera-to-robot transform
     private final Transform3d robotToCam = new Transform3d(
         new Translation3d(0.5, 0.0, 0.5), // x, y, z in meters
-        new Rotation3d(0, Math.toRadians(-30), 0) // roll, pitch, yaw
+        new Rotation3d(0, Math.toRadians(0), 0) // roll, pitch, yaw
     );
 
     // PID controllers for trajectory following
@@ -44,7 +44,7 @@ public class AlignToTagCommand extends Command {
         5.0, 0, 0,
         new TrapezoidProfile.Constraints(
             DriveConstants.kMaxAngSpeedRadiansPerSec,
-            DriveConstants.kMaxAngSpeedRadiansPerSec * 2) // Max vel, accel for rotation
+            DriveConstants.kMaxAngSpeedRadiansPerSec / 2) // Max vel, accel for rotation
     );
 
     public AlignToTagCommand(DriveSubsystem drive, VisionSubsystem vision) {
@@ -146,7 +146,7 @@ public class AlignToTagCommand extends Command {
         return swerveCommand != null && swerveCommand.isFinished();
     }
 
-    // Helper method to convert Transform3d to Transform2d
+    // convert Transform3d to Transform2d
     private Transform2d toTransform2d(Transform3d transform3d) {
         return new Transform2d(
             new Translation2d(transform3d.getX(), transform3d.getY()), // x, y only

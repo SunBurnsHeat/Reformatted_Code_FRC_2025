@@ -291,7 +291,7 @@ import frc.robot.subsystems.VisionSubsystem;
             povMultiplier = 1;
         }
 
-        // Check for alignment trigger (e.g., A button)
+        // Check for alignment trigger
         if (driverController.getAButton()) {
             // If alignment isn’t already running, start it
             if (alignCommand == null || !alignCommand.isScheduled()) {
