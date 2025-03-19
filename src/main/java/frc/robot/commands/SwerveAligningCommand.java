@@ -6,6 +6,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.PoseEstimator; // Your pose estimator
 import frc.robot.subsystems.DriveSubsystem;
 
+
+// NOT USED FOR SWERVE ALIGNMENT 
 public class SwerveAligningCommand extends Command {
     private final DriveSubsystem driveSubsystem;
     private final PoseEstimator poseEstimator;

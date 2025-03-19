@@ -1,156 +1,241 @@
 package frc.robot.commands;
 
-import java.util.List;
-
-import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.trajectory.constraint.SwerveDriveKinematicsConstraint;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
-import frc.robot.Constants.DriveConstants;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.VisionSubsystem;
 
 public class AlignToTagCommand extends Command {
     private final DriveSubsystem driveSubsystem;
     private final VisionSubsystem visionSubsystem;
-    private SwerveControllerCommand swerveCommand;
-    private int currentTagId = -1; // Track the tag we’re aligning to
+    private final Pose2d targetOffset; 
 
-    // Camera-to-robot transform
-    private final Transform3d robotToCam = new Transform3d(
-        new Translation3d(0.5, 0.0, 0.5), // x, y, z in meters
-        new Rotation3d(0, Math.toRadians(0), 0) // roll, pitch, yaw
-    );
+    private final PIDController xController;
+    private final PIDController yController;
+    private final PIDController thetaController;
 
-    // PID controllers for trajectory following
-    private final PIDController xController = new PIDController(5.0, 0, 0); // Tune these
-    private final PIDController yController = new PIDController(5.0, 0, 0);
-    private final ProfiledPIDController thetaController = new ProfiledPIDController(
-        5.0, 0, 0,
-        new TrapezoidProfile.Constraints(
-            DriveConstants.kMaxAngSpeedRadiansPerSec,
-            DriveConstants.kMaxAngSpeedRadiansPerSec / 2) // Max vel, accel for rotation
-    );
+    private final double positionTolerance = 0.05; // Meters (5 cm)
+    private final double rotationTolerance = 1.0; // Degrees
 
-    public AlignToTagCommand(DriveSubsystem drive, VisionSubsystem vision) {
-        this.driveSubsystem = drive;
-        this.visionSubsystem = vision;
-        addRequirements(drive, vision);
-        thetaController.enableContinuousInput(-Math.PI, Math.PI); // Handle angle wrapping
+    public AlignToTagCommand(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
+        this(driveSubsystem, visionSubsystem, new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0)));
+    }
+
+    public AlignToTagCommand(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, Pose2d targetOffset) {
+        this.driveSubsystem = driveSubsystem;
+        this.visionSubsystem = visionSubsystem;
+        this.targetOffset = targetOffset;
+
+        this.xController = new PIDController(1.0, 0.0, 0.1); 
+        this.yController = new PIDController(1.0, 0.0, 0.1);
+        this.thetaController = new PIDController(2.0, 0.0, 0.2);
+
+        xController.setTolerance(positionTolerance);
+        yController.setTolerance(positionTolerance);
+        thetaController.setTolerance(rotationTolerance);
+
+        thetaController.enableContinuousInput(-180.0, 180.0);
+
+        addRequirements(driveSubsystem, visionSubsystem);
     }
 
     @Override
     public void initialize() {
-        // Get current pose from DriveSubsystem's estimator
-        Pose2d currentPose = driveSubsystem.getEstPose2d();
-
-        // Get the best tag pose from VisionSubsystem
-        var tagPoseOpt = visionSubsystem.getBestTagPose();
-        if (!tagPoseOpt.isPresent()) {
-            swerveCommand = null;
-            return;
-        }
-
-        Pose2d tagPose = tagPoseOpt.get();
-        currentTagId = visionSubsystem.getBestTagId().get(); // Store the tag ID for vision fusion
-
-        // Define desired pose 
-        Pose2d desiredPose = new Pose2d(
-            tagPose.getX() - Units.inchesToMeters(10), // need to change based on the desired distance 
-            tagPose.getY(),
-            tagPose.getRotation()
-        );
-
-        // Generate trajectory
-        TrajectoryConfig config = new TrajectoryConfig(
-            DriveConstants.kMaxSpeedMetersPerSec,
-            DriveConstants.kMaxSpeedMetersPerSec / 3 // Max accel
-        ).setKinematics(DriveConstants.kDriveKinematics)
-         .addConstraint(new SwerveDriveKinematicsConstraint(DriveConstants.kDriveKinematics, DriveConstants.kMaxSpeedMetersPerSec));
-
-        Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-            currentPose,
-            List.of(), // No waypoints (direct path)
-            desiredPose,
-            config
-        );
-
-        // Create swerve command
-        swerveCommand = new SwerveControllerCommand(
-            trajectory,
-            driveSubsystem::getEstPose2d, // Pose from estimator
-            DriveConstants.kDriveKinematics,
-            xController,
-            yController,
-            thetaController,
-            driveSubsystem::setModuleStates, // Module state setter
-            driveSubsystem
-        );
-
-        swerveCommand.initialize();
+        xController.reset();
+        yController.reset();
+        thetaController.reset();
     }
 
     @Override
     public void execute() {
-    if (swerveCommand != null) {
-            swerveCommand.execute();
+        if (visionSubsystem.hasTarget()) {
+            PhotonTrackedTarget target = visionSubsystem.getBestTarget();
+            Transform3d cameraToTarget = target.getBestCameraToTarget();
+            Pose2d targetPoseRelative = new Pose2d(
+                cameraToTarget.getX(),
+                cameraToTarget.getY(),
+                Rotation2d.fromDegrees(visionSubsystem.getTargetYawAdjusted(driveSubsystem.getHeadingRotation2d()))
+            );
 
-            var visionResultOpt = visionSubsystem.getLatestVisionResult();
-            if (visionResultOpt.isPresent()) {
-                PhotonPipelineResult result = visionResultOpt.get();
-                var target = result.getBestTarget();
-                if (target.getFiducialId() == currentTagId) {
-                    Pose2d tagPose = visionSubsystem.getBestTagPose().get();
-                    Transform3d camToTag = target.getBestCameraToTarget();
+            Translation2d cameraOffset = visionSubsystem.getCameraOffset();
+            Pose2d targetPoseRobotRelative = targetPoseRelative.transformBy(
+                new Transform2d(cameraOffset, visionSubsystem.getCameraYawOffset())
+            );
 
-                    // Convert 3D transforms to 2D
-                    Transform2d camToTag2d = toTransform2d(camToTag.inverse());
-                    Transform2d robotToCam2d = toTransform2d(robotToCam.inverse());
+            Pose2d desiredPose = targetPoseRobotRelative.transformBy(
+                new Transform2d(targetOffset.getTranslation().unaryMinus(), targetOffset.getRotation().unaryMinus())
+            );
 
-                    // Apply transforms in 2D
-                    Pose2d camPose = tagPose.transformBy(camToTag2d);
-                    Pose2d robotPose = camPose.transformBy(robotToCam2d);
+            Pose2d currentPose = driveSubsystem.getEstPose2d();
 
-                    driveSubsystem.addVisionMeasurement(robotPose, result.getTimestampSeconds());
-                }
-            }
-        }    
-    }
+            double xSpeed = xController.calculate(currentPose.getX(), desiredPose.getX());
+            double ySpeed = yController.calculate(currentPose.getY(), desiredPose.getY());
+            double rotationSpeed = thetaController.calculate(
+                currentPose.getRotation().getDegrees(),
+                desiredPose.getRotation().getDegrees()
+            );
 
-    @Override
-    public void end(boolean interrupted) {
-        if (swerveCommand != null) {
-            swerveCommand.end(interrupted);
+            xSpeed = Math.max(-0.5, Math.min(0.5, xSpeed)); // Meters/sec
+            ySpeed = Math.max(-0.5, Math.min(0.5, ySpeed)); // Meters/sec
+            rotationSpeed = Math.max(-0.5, Math.min(0.5, rotationSpeed)); // Radians/sec
+
+            driveSubsystem.drive(xSpeed, ySpeed, rotationSpeed, false, false);
+
+            Pose2d visionPose = targetPoseRobotRelative;
+            double timestamp = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+            driveSubsystem.addVisionMeasurement(visionPose, timestamp);
+        } else {
+            driveSubsystem.drive(0.0, 0.0, 0.0, false, false);
         }
-        driveSubsystem.drive(0, 0, 0, false, false); // Stop the robot
-        currentTagId = -1; // Reset tag ID
     }
 
     @Override
     public boolean isFinished() {
-        return swerveCommand != null && swerveCommand.isFinished();
+        if (!visionSubsystem.hasTarget()) {
+            return true; 
+        }
+
+        Pose2d currentPose = driveSubsystem.getEstPose2d();
+        PhotonTrackedTarget target = visionSubsystem.getBestTarget();
+        Transform3d cameraToTarget = target.getBestCameraToTarget();
+        Pose2d targetPoseRelative = new Pose2d(
+            cameraToTarget.getX(),
+            cameraToTarget.getY(),
+            Rotation2d.fromDegrees(visionSubsystem.getTargetYawAdjusted(driveSubsystem.getHeadingRotation2d()))
+        );
+        Translation2d cameraOffset = visionSubsystem.getCameraOffset();
+        Pose2d targetPoseRobotRelative = targetPoseRelative.transformBy(
+            new Transform2d(cameraOffset, visionSubsystem.getCameraYawOffset())
+        );
+        Pose2d desiredPose = targetPoseRobotRelative.transformBy(
+            new Transform2d(targetOffset.getTranslation().unaryMinus(), targetOffset.getRotation().unaryMinus())
+        );
+
+        return xController.atSetpoint() && 
+               yController.atSetpoint() && 
+               thetaController.atSetpoint();
     }
 
-    // convert Transform3d to Transform2d
-    private Transform2d toTransform2d(Transform3d transform3d) {
-        return new Transform2d(
-            new Translation2d(transform3d.getX(), transform3d.getY()), // x, y only
-            Rotation2d.fromRadians(transform3d.getRotation().getZ())   // yaw only
-        );
+    @Override
+    public void end(boolean interrupted) {
+        driveSubsystem.drive(0.0, 0.0, 0.0, false, false);
     }
 }
+
+
+
+/*------------------------------------Version 2----------------------------------------*/
+
+// public class AlignToTagCommand extends Command {
+//     private final DriveSubsystem driveSubsystem;
+//     private final VisionSubsystem visionSubsystem;
+//     private final Pose2d targetOffset; 
+//     private final double positionTolerance = 0.01;
+//     private final double rotationTolerance = 2.0; 
+//     private final double translationSpeedFactor = 0.5; 
+//     private final double rotationSpeedFactor = 0.02; 
+
+//     public AlignToTagCommand(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem) {
+//         this.driveSubsystem = driveSubsystem;
+//         this.visionSubsystem = visionSubsystem;
+//         this.targetOffset = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0)); 
+//         addRequirements(driveSubsystem, visionSubsystem);
+//     }
+
+//     public AlignToTagCommand(DriveSubsystem driveSubsystem, VisionSubsystem visionSubsystem, Pose2d targetOffset) {
+//         this.driveSubsystem = driveSubsystem;
+//         this.visionSubsystem = visionSubsystem;
+//         this.targetOffset = targetOffset; 
+//         addRequirements(driveSubsystem, visionSubsystem);
+//     }
+
+//     @Override
+//     public void initialize() {
+//     }
+
+//     @Override
+//     public void execute() {
+//         if (visionSubsystem.hasTarget()) {
+//             PhotonTrackedTarget target = visionSubsystem.getBestTarget();
+//             Transform3d cameraToTarget = target.getBestCameraToTarget();
+            
+//             Pose2d targetPoseRelative = new Pose2d(
+//                 cameraToTarget.getX(),
+//                 cameraToTarget.getY(),
+//                 Rotation2d.fromDegrees(visionSubsystem.getTargetYawAdjusted(driveSubsystem.getHeadingRotation2d()))
+//             );
+
+//             Translation2d cameraOffset = visionSubsystem.getCameraOffset();
+//             Pose2d targetPoseRobotRelative = targetPoseRelative.transformBy(
+//                 new Transform2d(cameraOffset, visionSubsystem.getCameraYawOffset())
+//             );
+
+//             Pose2d desiredPose = targetPoseRobotRelative.transformBy(
+//                 new Transform2d(targetOffset.getTranslation().unaryMinus(), targetOffset.getRotation().unaryMinus())
+//             );
+
+//             Pose2d currentPose = driveSubsystem.getEstPose2d();
+
+//             double xError = desiredPose.getX() - currentPose.getX();
+//             double yError = desiredPose.getY() - currentPose.getY();
+//             double thetaError = desiredPose.getRotation().minus(currentPose.getRotation()).getDegrees();
+
+//             double xSpeed = xError * translationSpeedFactor;
+//             double ySpeed = yError * translationSpeedFactor;
+//             double rotationSpeed = thetaError * rotationSpeedFactor;
+
+//             xSpeed = Math.max(-0.5, Math.min(0.5, xSpeed)); // Meters/sec
+//             ySpeed = Math.max(-0.5, Math.min(0.5, ySpeed)); // Meters/sec
+//             rotationSpeed = Math.max(-0.5, Math.min(0.5, rotationSpeed)); // Radians/sec
+
+//             driveSubsystem.drive(xSpeed, ySpeed, rotationSpeed, false, false);
+
+//             Pose2d visionPose = targetPoseRobotRelative; // Could refine this further
+//             double timestamp = edu.wpi.first.wpilibj.Timer.getFPGATimestamp();
+//             driveSubsystem.addVisionMeasurement(visionPose, timestamp);
+//         } else {
+//             driveSubsystem.drive(0.0, 0.0, 0.0, false, false);
+//         }
+//     }
+
+//     @Override
+//     public boolean isFinished() {
+//         if (!visionSubsystem.hasTarget()) {
+//             return true;
+//         }
+
+//         Pose2d currentPose = driveSubsystem.getEstPose2d();
+//         PhotonTrackedTarget target = visionSubsystem.getBestTarget();
+//         Transform3d cameraToTarget = target.getBestCameraToTarget();
+//         Pose2d targetPoseRelative = new Pose2d(
+//             cameraToTarget.getX(),
+//             cameraToTarget.getY(),
+//             Rotation2d.fromDegrees(visionSubsystem.getTargetYawAdjusted(driveSubsystem.getHeadingRotation2d()))
+//         );
+//         Translation2d cameraOffset = visionSubsystem.getCameraOffset();
+//         Pose2d targetPoseRobotRelative = targetPoseRelative.transformBy(
+//             new Transform2d(cameraOffset, visionSubsystem.getCameraYawOffset())
+//         );
+//         Pose2d desiredPose = targetPoseRobotRelative.transformBy(
+//             new Transform2d(targetOffset.getTranslation().unaryMinus(), targetOffset.getRotation().unaryMinus())
+//         );
+
+//         double xError = Math.abs(desiredPose.getX() - currentPose.getX());
+//         double yError = Math.abs(desiredPose.getY() - currentPose.getY());
+//         double thetaError = Math.abs(desiredPose.getRotation().minus(currentPose.getRotation()).getDegrees());
+
+//         return xError < positionTolerance && yError < positionTolerance && thetaError < rotationTolerance;
+//     }
+
+//     @Override
+//     public void end(boolean interrupted) {
+//         driveSubsystem.drive(0.0, 0.0, 0.0, false, false);
+//     }
+// }
