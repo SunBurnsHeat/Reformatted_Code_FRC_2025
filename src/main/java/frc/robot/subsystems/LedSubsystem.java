@@ -166,7 +166,10 @@ public class LedSubsystem extends SubsystemBase {
     // private static ElevatorSubsystem elevator = new ElevatorSubsystem();
             
             private static AddressableLED ledBar; // instance of the led bar class
-        
+
+            private static double allianceBlinkLastChangeTime = 0;
+            private static boolean allianceBlinkIsOn = true;
+            private static final double ALLIANCE_BLINK_INTERVAL = 0.25; // 250ms per phase (2 Hz full cycle)        
             // Buffer or the holder of the color's data and its variable
             private static AddressableLEDBuffer led_red_alliance;
             private static AddressableLEDBuffer led_blue_alliance;
@@ -290,6 +293,27 @@ public class LedSubsystem extends SubsystemBase {
                 }
                 else {
                     allianceLED = LEDPattern.gradient(LEDPattern.GradientType.kDiscontinuous, Color.kRed, Color.kBlue);
+                }
+            }
+
+            public static void blinkAllianceSolid() {
+                double currentTime = Timer.getFPGATimestamp();
+        
+                // Switch phases if enough time has passed
+                if (currentTime - allianceBlinkLastChangeTime >= ALLIANCE_BLINK_INTERVAL) {
+                    allianceBlinkIsOn = !allianceBlinkIsOn;
+                    allianceBlinkLastChangeTime = currentTime;
+                    // Optional: Debug output
+                    System.out.println("Alliance blink phase: " + (allianceBlinkIsOn ? "ON" : "OFF") + " at time: " + currentTime);
+                }
+        
+                if (allianceBlinkIsOn) {
+                    // Set solid alliance color
+                    allianceLED.applyTo(alliance_buffer);
+                    ledBar.setData(alliance_buffer);
+                } else {
+                    // Turn off (black)
+                    ledBar.setData(led_blank);
                 }
             }
 
