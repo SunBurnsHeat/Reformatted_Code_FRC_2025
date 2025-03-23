@@ -10,6 +10,9 @@ public class PulseScorerCommand extends Command {
     private double pulseDuration; // in seconds
     private double restDuration; // in seconds
     private int pulseCount; // number of pulses
+
+    private double lastLeftSpeed = Double.NaN;
+    private double lastRightSpeed = Double.NaN;
     
     private final Timer timer;
     private int currentPulse;
@@ -38,26 +41,58 @@ public class PulseScorerCommand extends Command {
         scorer.setScorerMaxLeft(pulseDutyCycle);
         scorer.setScorerMaxRight(pulseDutyCycle);
     }
-    
+
     @Override
     public void execute() {
         double elapsedTime = timer.get();
-        
+        double leftSpeed, rightSpeed;
+
         if (isPulsing && elapsedTime >= pulseDuration) {
-            scorer.stop();
+            leftSpeed = 0.0; rightSpeed = 0.0;
             timer.reset();
             isPulsing = false;
-        } 
-        else if (!isPulsing && elapsedTime >= restDuration) {
+        } else if (!isPulsing && elapsedTime >= restDuration) {
             currentPulse++;
             if (currentPulse < pulseCount) {
-                scorer.setScorerMaxLeft(pulseDutyCycle);
-                scorer.setScorerMaxRight(pulseDutyCycle);
+                leftSpeed = pulseDutyCycle; rightSpeed = pulseDutyCycle;
                 timer.reset();
                 isPulsing = true;
+            } else {
+                leftSpeed = 0.0; rightSpeed = 0.0;
             }
+        } else {
+            return; // No change, skip motor updates
+        }
+
+        if (leftSpeed != lastLeftSpeed) {
+            scorer.setScorerMaxLeft(leftSpeed);
+            lastLeftSpeed = leftSpeed;
+        }
+        if (rightSpeed != lastRightSpeed) {
+            scorer.setScorerMaxRight(rightSpeed);
+            lastRightSpeed = rightSpeed;
         }
     }
+    
+    // @Override
+    // public void execute() {
+    //     double elapsedTime = timer.get();
+        
+    //     if (isPulsing && elapsedTime >= pulseDuration) {
+    //         scorer.stop();
+    //         timer.reset();
+    //         isPulsing = false;
+    //     } 
+    //     else if (!isPulsing && elapsedTime >= restDuration) {
+    //         currentPulse++;
+    //         if (currentPulse < pulseCount) {
+    //             scorer.setScorerMaxLeft(pulseDutyCycle);
+    //             scorer.setScorerMaxRight(pulseDutyCycle);
+    //             timer.reset();
+    //             isPulsing = true;
+    //         }
+    //     }
+    // }
     
     @Override
     public void end(boolean interrupted) {

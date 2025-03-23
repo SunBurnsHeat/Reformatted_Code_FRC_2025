@@ -8,6 +8,8 @@ import frc.robot.subsystems.ScorerSubsystem;
 public class CoralIntakeCommand extends Command {
     private ScorerSubsystem scorer;
     private int counter;
+    private double lastLeftSpeed = Double.NaN;
+    private double lastRightSpeed = Double.NaN;
 
     public CoralIntakeCommand(ScorerSubsystem subsystem){
         this.scorer = subsystem;
@@ -24,71 +26,113 @@ public class CoralIntakeCommand extends Command {
         counter = 0;
     }
 
-    /**
-     * Called repeatedly while the command is scheduled.
-     * This is where the command's main logic is executed.
-     */
     @Override
-    public void execute() {
-        SmartDashboard.putNumber("State Counter", counter);
-        switch (counter) {
-            case 0:
-            scorer.setScorerMaxLeft(.28);
-            scorer.setScorerMaxRight(.28);
-                if (scorer.initProx) {
-                    LedSubsystem.setYellowMsg();
-                    counter=1;
-                }
-                break;
-            case 1:
-                scorer.setScorerMaxLeft(.2);
-                scorer.setScorerMaxRight(.2);
-                if ((scorer.endProx) && !(scorer.initProx)) {
-                    counter = 2;
-                }
-                break;
-            case 2: 
-                scorer.setScorerMaxLeft(-0.07);
-                scorer.setScorerMaxRight(-0.07);
-                if ((scorer.endProx) && (scorer.initProx)) {
-                    counter = 3;
-                }
-                break;
-            case 3:
-                scorer.setScorerMaxLeft(0.1);
-                scorer.setScorerMaxRight(0.1);
-                if ((scorer.endProx) && !(scorer.initProx)) {
-                    LedSubsystem.setGreenMsg();
-                    counter = 4;
-                }
-                break;
-            case 4:
-                scorer.setScorerMaxLeft(0.0);
-                scorer.setScorerMaxRight(0.0);
-                break;
-        }
-        // else if ((!scorer.endProx) && (scorer.initProx)) {
-        //     scorer.setScorerMaxLeft(0.12);
-        //     scorer.setScorerMaxRight(0.12);    
-        // }
-        // else if ((scorer.endProx) && (scorer.initProx)) {
-        //     scorer.setScorerMaxLeft(0);
-        //     scorer.setScorerMaxRight(0);  
-        // }
-        // else {
-        //     scorer.setScorerMaxLeft(0.285);
-        //     scorer.setScorerMaxRight(0.285);
-        // }
-
-        // if (!scorer.initProx) {
-        //     scorer.setScorerMaxLeft(0);
-        //     scorer.setScorerMaxRight(0);
-        // }
-        // else{
-        //     scorer.setScorerMaxLeft(0.3);
-        //     scorer.setScorerMaxRight(0.3);
-        // }
+public void execute() {
+    double leftSpeed, rightSpeed;
+    switch (counter) {
+        case 0:
+            leftSpeed = 0.25; rightSpeed = 0.25;
+            if (scorer.initProx) {
+                LedSubsystem.setYellowMsg();
+                counter = 1;
+            }
+            break;
+        case 1:
+            leftSpeed = 0.225; rightSpeed = 0.225;
+            if (scorer.endProx && !scorer.initProx) counter = 2;
+            break;
+        case 2:
+            leftSpeed = -0.07; rightSpeed = -0.07;
+            if (scorer.endProx && scorer.initProx) counter = 3;
+            break;
+        case 3:
+            leftSpeed = 0.1; rightSpeed = 0.1;
+            if (scorer.endProx && !scorer.initProx) {
+                LedSubsystem.setGreenMsg();
+                counter = 4;
+            }
+            break;
+        case 4:
+            leftSpeed = 0.0; rightSpeed = 0.0;
+            break;
+        default:
+            leftSpeed = 0.0; rightSpeed = 0.0;
     }
+    if (leftSpeed != lastLeftSpeed) {
+        scorer.setScorerMaxLeft(leftSpeed);
+        lastLeftSpeed = leftSpeed;
+    }
+    if (rightSpeed != lastRightSpeed) {
+        scorer.setScorerMaxRight(rightSpeed);
+        lastRightSpeed = rightSpeed;
+    }
+}
+
+    // /**
+    //  * Called repeatedly while the command is scheduled.
+    //  * This is where the command's main logic is executed.
+    //  */
+    // @Override
+    // public void execute() {
+    //     SmartDashboard.putNumber("State Counter", counter);
+    //     switch (counter) {
+    //         case 0:
+    //         scorer.setScorerMaxLeft(.28);
+    //         scorer.setScorerMaxRight(.28);
+    //             if (scorer.initProx) {
+    //                 LedSubsystem.setYellowMsg();
+    //                 counter=1;
+    //             }
+    //             break;
+    //         case 1:
+    //             scorer.setScorerMaxLeft(.2);
+    //             scorer.setScorerMaxRight(.2);
+    //             if ((scorer.endProx) && !(scorer.initProx)) {
+    //                 counter = 2;
+    //             }
+    //             break;
+    //         case 2: 
+    //             scorer.setScorerMaxLeft(-0.07);
+    //             scorer.setScorerMaxRight(-0.07);
+    //             if ((scorer.endProx) && (scorer.initProx)) {
+    //                 counter = 3;
+    //             }
+    //             break;
+    //         case 3:
+    //             scorer.setScorerMaxLeft(0.1);
+    //             scorer.setScorerMaxRight(0.1);
+    //             if ((scorer.endProx) && !(scorer.initProx)) {
+    //                 LedSubsystem.setGreenMsg();
+    //                 counter = 4;
+    //             }
+    //             break;
+    //         case 4:
+    //             scorer.setScorerMaxLeft(0.0);
+    //             scorer.setScorerMaxRight(0.0);
+    //             break;
+    //     }
+    //     // else if ((!scorer.endProx) && (scorer.initProx)) {
+    //     //     scorer.setScorerMaxLeft(0.12);
+    //     //     scorer.setScorerMaxRight(0.12);    
+    //     // }
+    //     // else if ((scorer.endProx) && (scorer.initProx)) {
+    //     //     scorer.setScorerMaxLeft(0);
+    //     //     scorer.setScorerMaxRight(0);  
+    //     // }
+    //     // else {
+    //     //     scorer.setScorerMaxLeft(0.285);
+    //     //     scorer.setScorerMaxRight(0.285);
+    //     // }
+
+    //     // if (!scorer.initProx) {
+    //     //     scorer.setScorerMaxLeft(0);
+    //     //     scorer.setScorerMaxRight(0);
+    //     // }
+    //     // else{
+    //     //     scorer.setScorerMaxLeft(0.3);
+    //     //     scorer.setScorerMaxRight(0.3);
+    //     // }
+    // }
 
     /**
      * Called once when the command ends or is interrupted.

@@ -272,88 +272,128 @@ import frc.robot.subsystems.VisionSubsystem;
     }
 
     @Override
-    public void execute() {
-        int fineTurn = 0;
-        if (driverController.getXButton()) {
-            fineTurn += 1; // Left turn
-        }
-        if (driverController.getBButton()) {
-            fineTurn -= 1; // Right turn
-        }
+public void execute() {
+    double leftY = -MathUtil.applyDeadband(driverController.getLeftY(), 0.015);
+    double leftX = -MathUtil.applyDeadband(driverController.getLeftX(), 0.015);
+    double rightX = -MathUtil.applyDeadband(driverController.getRightX(), 0.01);
+    int pov = driverController.getPOV();
+    boolean xButton = driverController.getXButton();
+    boolean bButton = driverController.getBButton();
+    double leftTrigger = driverController.getLeftTriggerAxis();
+    double rightTrigger = driverController.getRightTriggerAxis();
 
-        double multiplier = 0.4; // Default speed
-        double povMultiplier = 0.5; // Default POV speed
-        if (driverController.getLeftTriggerAxis() > 0.75 && driverController.getRightTriggerAxis() > 0.75) {
-            multiplier = 1; // Turbo mode
-            povMultiplier = 1.5;
-        } else if (driverController.getLeftTriggerAxis() > 0.75 || driverController.getRightTriggerAxis() > 0.75) {
-            multiplier = 0.65; // Moderate mode
-            povMultiplier = 1;
-        }
+    int fineTurn = xButton ? 1 : (bButton ? -1 : 0);
+    double multiplier = 0.4, povMultiplier = 0.5;
+    if (leftTrigger > 0.75 && rightTrigger > 0.75) {
+        multiplier = 1; povMultiplier = 1.5;
+    } else if (leftTrigger > 0.75 || rightTrigger > 0.75) {
+        multiplier = 0.65; povMultiplier = 1;
+    }
 
-        // Check for alignment trigger
-        if (driverController.getAButton()) {
-            // If alignment isn’t already running, start it
-            if (alignCommand == null || !alignCommand.isScheduled()) {
-                alignCommand = new AlignToTagCommand(driveSubsystem, visionSubsystem);
-                alignCommand.schedule();
-            }
-            // Let AlignToTagCommand handle driving while it’s active
-            return; // Skip manual driving logic
-        } else {
-            // If A button is released and alignment is running, cancel it
-            if (alignCommand != null && alignCommand.isScheduled()) {
-                alignCommand.cancel();
-                alignCommand = null;
-            }
-        }
-
-        // Manual driving logic (runs only if alignment isn’t active)
-        if (driverController.getPOV() == -1) {
-            if (fineTurn == 0) {
-                driveSubsystem.drive(
-                    -multiplier * MathUtil.applyDeadband(driverController.getLeftY(), 0.015),
-                    -multiplier * MathUtil.applyDeadband(driverController.getLeftX(), 0.015),
-                    -multiplier * 0.85 * MathUtil.applyDeadband(driverController.getRightX(), 0.01),
-                    true, true
-                );
-            } else {
-                driveSubsystem.drive(
-                    -multiplier * MathUtil.applyDeadband(driverController.getLeftY(), 0.015),
-                    -multiplier * MathUtil.applyDeadband(driverController.getLeftX(), 0.015),
-                    povMultiplier * fineTurn,
-                    true, true
-                );
-            }
-        } else {
-            switch (driverController.getPOV()) {
-                case 0:
-                    driveSubsystem.drive(povMultiplier * 0.25, 0, povMultiplier * fineTurn, true, true);
-                    break;
-                case 45:
-                    driveSubsystem.drive(povMultiplier * 0.25, povMultiplier * -0.25, povMultiplier * fineTurn, true, true);
-                    break;
-                case 90:
-                    driveSubsystem.drive(0, povMultiplier * -0.25, povMultiplier * fineTurn, true, true);
-                    break;
-                case 135:
-                    driveSubsystem.drive(povMultiplier * -0.25, povMultiplier * -0.25, povMultiplier * fineTurn, true, true);
-                    break;
-                case 180:
-                    driveSubsystem.drive(povMultiplier * -0.25, 0, povMultiplier * fineTurn, true, true);
-                    break;
-                case 225:
-                    driveSubsystem.drive(povMultiplier * -0.25, povMultiplier * 0.25, povMultiplier * fineTurn, true, true);
-                    break;
-                case 270:
-                    driveSubsystem.drive(0, povMultiplier * 0.25, povMultiplier * fineTurn, true, true);
-                    break;
-                case 315:
-                    driveSubsystem.drive(povMultiplier * 0.25, povMultiplier * 0.25, povMultiplier * fineTurn, true, true);
-                    break;
-            }
+    if (pov == -1) {
+        driveSubsystem.drive(
+            multiplier * leftY,
+            multiplier * leftX,
+            fineTurn == 0 ? multiplier * 0.85 * rightX : povMultiplier * fineTurn,
+            true, true
+        );
+    } else {
+        switch (pov) {
+            case 0: driveSubsystem.drive(povMultiplier * 0.25, 0, povMultiplier * fineTurn, true, true); break;
+            case 45: driveSubsystem.drive(povMultiplier * 0.25, povMultiplier * -0.25, povMultiplier * fineTurn, true, true); break;
+            case 90:driveSubsystem.drive(0, povMultiplier * -0.25, povMultiplier * fineTurn, true, true);break;
+            case 135:driveSubsystem.drive(povMultiplier * -0.25, povMultiplier * -0.25, povMultiplier * fineTurn, true, true);break;
+            case 180:driveSubsystem.drive(povMultiplier * -0.25, 0, povMultiplier * fineTurn, true, true);break;
+            case 225:driveSubsystem.drive(povMultiplier * -0.25, povMultiplier * 0.25, povMultiplier * fineTurn, true, true);break;
+            case 270:driveSubsystem.drive(0, povMultiplier * 0.25, povMultiplier * fineTurn, true, true);break;
+            case 315:driveSubsystem.drive(povMultiplier * 0.25, povMultiplier * 0.25, povMultiplier * fineTurn, true, true);break;
         }
     }
+}
+
+    // @Override
+    // public void execute() {
+    //     int fineTurn = 0;
+    //     if (driverController.getXButton()) {
+    //         fineTurn += 1; // Left turn
+    //     }
+    //     if (driverController.getBButton()) {
+    //         fineTurn -= 1; // Right turn
+    //     }
+
+    //     double multiplier = 0.4; // Default speed
+    //     double povMultiplier = 0.5; // Default POV speed
+    //     if (driverController.getLeftTriggerAxis() > 0.75 && driverController.getRightTriggerAxis() > 0.75) {
+    //         multiplier = 1; // Turbo mode
+    //         povMultiplier = 1.5;
+    //     } else if (driverController.getLeftTriggerAxis() > 0.75 || driverController.getRightTriggerAxis() > 0.75) {
+    //         multiplier = 0.65; // Moderate mode
+    //         povMultiplier = 1;
+    //     }
+
+    //     // Check for alignment trigger
+    //     if (driverController.getAButton()) {
+    //         // If alignment isn’t already running, start it
+    //         if (alignCommand == null || !alignCommand.isScheduled()) {
+    //             alignCommand = new AlignToTagCommand(driveSubsystem, visionSubsystem);
+    //             alignCommand.schedule();
+    //         }
+    //         // Let AlignToTagCommand handle driving while it’s active
+    //         return; // Skip manual driving logic
+    //     } else {
+    //         // If A button is released and alignment is running, cancel it
+    //         if (alignCommand != null && alignCommand.isScheduled()) {
+    //             alignCommand.cancel();
+    //             alignCommand = null;
+    //         }
+    //     }
+
+    //     // Manual driving logic (runs only if alignment isn’t active)
+    //     if (driverController.getPOV() == -1) {
+    //         if (fineTurn == 0) {
+    //             driveSubsystem.drive(
+    //                 -multiplier * MathUtil.applyDeadband(driverController.getLeftY(), 0.015),
+    //                 -multiplier * MathUtil.applyDeadband(driverController.getLeftX(), 0.015),
+    //                 -multiplier * 0.85 * MathUtil.applyDeadband(driverController.getRightX(), 0.01),
+    //                 true, true
+    //             );
+    //         } else {
+    //             driveSubsystem.drive(
+    //                 -multiplier * MathUtil.applyDeadband(driverController.getLeftY(), 0.015),
+    //                 -multiplier * MathUtil.applyDeadband(driverController.getLeftX(), 0.015),
+    //                 povMultiplier * fineTurn,
+    //                 true, true
+    //             );
+    //         }
+    //     } else {
+    //         switch (driverController.getPOV()) {
+    //             case 0:
+    //                 driveSubsystem.drive(povMultiplier * 0.25, 0, povMultiplier * fineTurn, true, true);
+    //                 break;
+    //             case 45:
+    //                 driveSubsystem.drive(povMultiplier * 0.25, povMultiplier * -0.25, povMultiplier * fineTurn, true, true);
+    //                 break;
+    //             case 90:
+    //                 driveSubsystem.drive(0, povMultiplier * -0.25, povMultiplier * fineTurn, true, true);
+    //                 break;
+    //             case 135:
+    //                 driveSubsystem.drive(povMultiplier * -0.25, povMultiplier * -0.25, povMultiplier * fineTurn, true, true);
+    //                 break;
+    //             case 180:
+    //                 driveSubsystem.drive(povMultiplier * -0.25, 0, povMultiplier * fineTurn, true, true);
+    //                 break;
+    //             case 225:
+    //                 driveSubsystem.drive(povMultiplier * -0.25, povMultiplier * 0.25, povMultiplier * fineTurn, true, true);
+    //                 break;
+    //             case 270:
+    //                 driveSubsystem.drive(0, povMultiplier * 0.25, povMultiplier * fineTurn, true, true);
+    //                 break;
+    //             case 315:
+    //                 driveSubsystem.drive(povMultiplier * 0.25, povMultiplier * 0.25, povMultiplier * fineTurn, true, true);
+    //                 break;
+    //         }
+    //     }
+    // }
 
     @Override
     public void end(boolean interrupted) {
